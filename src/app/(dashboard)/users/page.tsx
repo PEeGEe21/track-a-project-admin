@@ -1,7 +1,25 @@
 "use client";
 
+import Pagination from "@/components/Pagination";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import useDebounce from "@/hooks/useDebounce";
 import { Search, X } from "lucide-react";
 import { useState } from "react";
+
+const statuses = [
+  { label: "All", value: "all" },
+  { label: "Pending", value: "pending" },
+  { label: "Completed", value: "completed" },
+  { label: "Failed", value: "failed" },
+];
 
 export type User = {
   id: number;
@@ -14,7 +32,19 @@ export type User = {
   avatar: string;
 };
 export default function Users() {
+  const [pageLimit, setPageLimit] = useState("10");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [status, setStatus] = useState("all");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  // const [orderBy, setOrderBy] = useState("DESC");
+  const [meta,] = useState(null);
+  // const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  // const [loading, setLoading] = useState(false);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   const users: User[] = [
     {
@@ -82,53 +112,122 @@ export default function Users() {
   return (
     <>
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h3 className="text-lg font-semibold">User Management</h3>
-              <div className="flex gap-3 w-full sm:w-auto">
-                <div className="relative flex-1 sm:flex-initial">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search users..."
-                    className="pl-10 pr-4 py-2 border rounded-lg w-full sm:w-64"
-                  />
+        <div className="bg-[#171717] border border-[#2B2B2B] rounded-lg shadow text-white">
+          <div className="py-4 space-y-4">
+            <div className="px-6 ">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h3 className="text-lg font-semibold">User Management</h3>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between w-full gap-3 mb-4 px-6 ">
+              <div className="flex flex-wrap gap-3">
+                <Select value={pageLimit} onValueChange={setPageLimit}>
+                  <SelectTrigger className="max-w-[100px] border border-[#2B2B2B] bg-[#212121] cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
+                    <SelectValue placeholder="Filter by Limit" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#212121] border-[#2B2B2B] cursor-pointer text-white!">
+                    {[5, 10, 15, 20].map((x) => (
+                      <SelectItem key={x} value={x.toString()}>
+                        {x}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="inline-flex items-center border border-[#2B2B2B] bg-[#212121] rounded-md">
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Search users..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                      }}
+                      className="w-64 border border-[#2B2B2B] bg-[#212121] focus:outline-none focus-within:outline-none focus:ring-0 border-none! focus-visible:ring-0 focus:border-none focus-visible:ring-offset-0"
+                    />
+                    {searchQuery && (
+                      <X
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer"
+                        size={16}
+                        onClick={() => {
+                          setSearchQuery("");
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div className="px-3">
+                    <Search
+                      className=" text-gray-400 cursor-pointer flex-1"
+                      size={20}
+                    />
+                  </div>
                 </div>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 whitespace-nowrap">
+
+                <div className="flex-1 min-w-[120px]">
+                  <div>
+                    <Select value={status} onValueChange={setStatus}>
+                      <SelectTrigger className="border border-[#2B2B2B] bg-[#212121] cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
+                        <SelectValue>
+                          {statuses.find((s) => s.value === status)?.label}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#212121] border-[#2B2B2B] cursor-pointer text-white!">
+                        {/* className="hover:bg-[#2B2B2B]! cursor-pointer hover:text-white!" */}
+
+                        {statuses.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            {s.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-x-3">
+                <Button className="border border-[#2B2B2B] bg-[#212121] cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
+                  Export
+                </Button>
+
+                <Button className="border border-[#2B2B2B] bg-[#ADED221A]! cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
                   Add User
-                </button>
+                </Button>
               </div>
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#1F1F1F] text-[#999999]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">
                     Role
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">
                     Projects
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">
                     Tasks
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                    Joined Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-[#2B2B2B]">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user.id} className="hover:bg-[#212121]">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -136,7 +235,7 @@ export default function Users() {
                         </div>
                         <div className="ml-3">
                           <p className="font-medium">{user.name}</p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <p className="text-sm text-[#707070]">{user.email}</p>
                         </div>
                       </div>
                     </td>
@@ -156,6 +255,7 @@ export default function Users() {
                     </td>
                     <td className="px-6 py-4 text-sm">{user.projects}</td>
                     <td className="px-6 py-4 text-sm">{user.tasks}</td>
+                    <td className="px-6 py-4 text-sm">{user.tasks}</td>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => setSelectedUser(user)}
@@ -168,6 +268,14 @@ export default function Users() {
                 ))}
               </tbody>
             </table>
+
+            {meta && users.length > 0 && (
+              <Pagination
+                meta={meta}
+                currentPage={currentPage}
+                handlePageChange={handlePageChange}
+              />
+            )}
           </div>
         </div>
 

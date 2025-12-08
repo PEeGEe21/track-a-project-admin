@@ -158,13 +158,14 @@ export default function Home() {
 
   return (
     <div className="space-y-6">
+      {/* #212121 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-lg shadow p-6">
+          <div key={idx} className="rounded-lg shadow p-6 bg-[#171717] border border-[#2B2B2B]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold mt-2">{stat.value}</p>
+                <p className="text-sm text-[#999999]">{stat.title}</p>
+                <p className="text-2xl font-bold mt-2 text-white">{stat.value}</p>
                 <p className="text-sm text-green-600 mt-2">{stat.change}</p>
               </div>
               <div className={`${stat.color} p-3 rounded-lg`}>
@@ -176,7 +177,7 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-[#171717] border border-[#2B2B2B] text-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Project & Task Trends</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={projectData}>
@@ -200,11 +201,11 @@ export default function Home() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-[#171717] border border-[#2B2B2B] rounded-lg shadow p-6 text-white group ">
           <h3 className="text-lg font-semibold mb-4">
             User Status Distribution
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={300} className="focus-visible:outline-none!">
             <PieChart>
               <Pie
                 data={userStatusData}
@@ -228,13 +229,13 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-[#171717] border border-[#2B2B2B] rounded-lg shadow p-6 text-white">
         <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
         <div className="space-y-4">
           {recentActivity.map((activity, idx) => (
             <div
               key={idx}
-              className="flex items-start space-x-3 pb-4 border-b last:border-b-0"
+              className="flex items-start space-x-3 pb-4 border-b border-[#2B2B2B] last:border-b-0"
             >
               <div className="bg-blue-100 rounded-full p-2">
                 <Activity className="w-4 h-4 text-blue-600" />

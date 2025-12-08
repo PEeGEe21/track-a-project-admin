@@ -48,3 +48,21 @@ export const menus: Module[] = [
     path: "/settings",
   },
 ];
+
+export const ProfileMenu: Module[] = [
+  {
+    id: "profile",
+    name: "My Profile",
+    action: "profile",
+  },
+  {
+    id: "settings",
+    name: "Settings",
+    path: "/settings",
+  },
+  {
+    id: "logout",
+    name: "Logout",
+    action: "logout",
+  },
+];

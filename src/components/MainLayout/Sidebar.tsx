@@ -27,11 +27,11 @@ export default function Sidebar() {
   return (
     <>
       <aside
-        className={`bg-gray-900 text-white transition-all duration-300 ${
+        className={`bg-[#171717] border-r border-[#2B2B2B] text-white transition-all duration-300 ${
           !isCollapsed ? "w-64" : "w-20"
         } flex flex-col`}
       >
-        <div className="p-4 flex items-center justify-between border-b border-gray-800">
+        <div className="p-4 flex items-center justify-between border-b border-[#2B2B2B] h-[72px]">
           {!isCollapsed && (
             <h1 className="text-xl font-bold whitespace-nowrap">
               Admin
@@ -39,7 +39,7 @@ export default function Sidebar() {
           )}
           <button
             onClick={() => toggleSidebar()}
-            className="p-2 hover:bg-gray-800 rounded"
+            className="p-2 hover:bg-[#212121] rounded"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -62,7 +62,7 @@ export default function Sidebar() {
                   {module.path ? (
                     <Link
                       href={module.path}
-                      className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group h-11 font-semibold whitespace-nowrap! ${
+                      className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group h-11 font-normal whitespace-nowrap! ${
                         isActive
                           ? "bg-[#ADED221A] text-white "
                           : "text-white hover:bg-[#ADED221A] bg-vampire-black"
@@ -95,7 +95,7 @@ export default function Sidebar() {
                       onClick={() =>
                         hasChildren && !isCollapsed && toggleMenu(module.name)
                       }
-                      className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group h-11 font-semibold whitespace-nowrap! ${
+                      className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group h-11 font-normal whitespace-nowrap! cursor-pointer ${
                         isActive
                           ? "bg-[#ADED221A] text-white "
                           : "text-white hover:bg-[#ADED221A] bg-vampire-black"
@@ -174,7 +174,7 @@ export default function Sidebar() {
                                 >
                                   <Link
                                     href={child.path!}
-                                    className={`block w-full text-left p-2 rounded-xl text-sm transition-all duration-200 font-semibold whitespace-nowrap! ${
+                                    className={`block w-full text-left p-2 rounded-xl text-sm transition-all duration-200 font-normal whitespace-nowrap! ${
                                       pathname === child.path
                                         ? "bg-[#ADED221A] text-white font-medium"
                                         : "text-white hover:bg-[#ADED221A] bg-carbon-black"
@@ -209,10 +209,10 @@ export default function Sidebar() {
           </ul>
         </nav>
 
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-[#2B2B2B]">
           <button
             className={clsx(
-              "w-full flex items-center space-x-3 py-3 px-2 rounded-lg hover:bg-gray-800 text-white cursor-pointer",
+              "w-full flex items-center space-x-3 py-3 px-2 rounded-lg hover:bg-[#212121] text-white cursor-pointer",
               isCollapsed ? "justify-center" : ""
             )}
           >

@@ -5,7 +5,7 @@ import {
   Settings,
   UserCog,
 } from "lucide-react";
-import { BoldLogout, BoldWallet2 } from "./iconJSX";
+import { BoldLogout, BoldUser, BoldWallet2 } from "./iconJSX";
 
 export const iconMap = {
   dashboard: LayoutDashboard,
@@ -15,4 +15,5 @@ export const iconMap = {
   settings: Settings,
   logout: BoldLogout,
   cashier: BoldWallet2,
+  profile: BoldUser,
 };
