@@ -1,4 +1,4 @@
-import { Bell, ChevronDown } from "lucide-react";
+import { Bell } from "lucide-react";
 import Profile from "../Profile";
 
 export default function Header() {

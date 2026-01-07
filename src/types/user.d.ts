@@ -4,10 +4,11 @@ export interface UserProps {
   email: string;
   username: string;
   avatar?: string;
-  emailVerified?: boolean;
+  fullName?: string;
+  created_at: string;
+  role: UserRole;
+  is_active: "Active" | "Inactive";
   sUsername?: string;
-  createdAt: string;
-  updatedAt: string;
   phone?: string;
   phone_code?: string;
   id: string;
@@ -27,3 +28,19 @@ export interface ChatTokenProps {
     token: string;
   };
 }
+
+export type UserRole = "super_admin" | "member" | "org_admin";
+
+export type User = {
+  id: number;
+  name?: string;
+  email: string;
+  fullName: string;
+  created_at: string;
+  role: UserRole;
+  is_active: "Active" | "Inactive";
+  projects: number;
+  tasks: number;
+  user_organizations: UserOrganization[];
+  avatar: string;
+};

@@ -88,7 +88,7 @@ const Pagination: React.FC<PaginationProps> = ({
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="p-2 rounded-md hover:bg-[#ADED221A] disabled:opacity-50 text-white border border-[#2B2B2B]"
+            className="p-2 rounded-md hover:bg-[#ADED221A] disabled:opacity-50 text-white border border-[#2B2B2B] cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -102,12 +102,12 @@ const Pagination: React.FC<PaginationProps> = ({
                   typeof page === "number" && handlePageChange(page)
                 }
                 disabled={page === "..." || page === currentPage}
-                className={`px-3 py-1 rounded-md ${
+                className={`px-3 py-1 rounded-md cursor-pointer ${
                   page === currentPage
                     ? "bg-[#E6E6E6] text-black"
                     : page === "..."
-                    ? "cursor-default text-black"
-                    : "hover:bg-gray-100 text-black"
+                    ? "cursor-default text-white"
+                    : "hover:bg-gray-100 text-white hover:text-black"
                 }`}
               >
                 {page}
@@ -119,7 +119,7 @@ const Pagination: React.FC<PaginationProps> = ({
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === meta?.last_page}
-            className="p-2 rounded-md hover:bg-[#ADED221A] disabled:opacity-50 text-white border border-[#2B2B2B]"
+            className="p-2 rounded-md hover:bg-[#ADED221A] disabled:opacity-50 text-white border border-[#2B2B2B] cursor-pointer"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

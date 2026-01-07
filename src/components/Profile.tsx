@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,18 +13,19 @@ import showToast from "./ToastComponent";
 import { useUserStore } from "@/lib/stores/useUserStore";
 import { formatNameCode } from "@/utils/format";
 import { iconMap } from "@/lib/icons/icon-map";
+import { ROLES } from "@/lib/constants";
+import { logoutUser } from "@/app/actions/auth";
 
 const Profile = () => {
   const router = useRouter();
   const { user } = useUserStore();
-  // const { disconnect } = useDisconnect();
   const { setLoading, logout } = useUserStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleMenu = (menu: string) => {
     switch (menu) {
       case "logout":
-        // handleLogout();
+        handleLogout();
         break;
       case "profile":
         setIsDropdownOpen(false);
@@ -32,6 +33,20 @@ const Profile = () => {
       default:
         return;
     }
+  };
+
+  const handleLogout = async () => {
+    setLoading(true);
+    setIsDropdownOpen(false);
+    const response = await logoutUser();
+    if (response?.success) {
+      showToast("success", `Successfully logged out`);
+      router.push("/");
+      logout();
+    } else {
+      showToast("error", "Failed to log out");
+    }
+    setLoading(false);
   };
 
   const handleLinkClick = () => {
@@ -57,7 +72,7 @@ const Profile = () => {
                   />
                 </div>
               ) : (
-                <div className="bg-[#212121] w-10 h-10 whitespace-nowrap flex items-center justify-center rounded-full">
+                <div className="bg-[#ADED221A] w-10 h-10 whitespace-nowrap flex items-center justify-center rounded-full">
                   <span className="whitespace-nowrap ">
                     {formatNameCode(user?.first_name)}
                     {formatNameCode(user?.last_name)}
@@ -66,8 +81,12 @@ const Profile = () => {
               )}
             </div>
             <div className="hidden sm:block">
-              <p className="font-semibold text-sm text-white">Admin User</p>
-              <p className="text-xs text-[#999999]">Super Admin</p>
+              <p className="font-semibold text-sm text-white">
+                {user?.first_name}
+              </p>
+              <p className="text-xs text-[#999999]">
+                {user ? ROLES[user.role] : "-"}
+              </p>
             </div>
           </div>
         </DropdownMenuTrigger>

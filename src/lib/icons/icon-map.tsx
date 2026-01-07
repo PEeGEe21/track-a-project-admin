@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Settings,
   UserCog,
+  Workflow,
 } from "lucide-react";
 import { BoldLogout, BoldUser, BoldWallet2 } from "./iconJSX";
 
@@ -16,4 +17,6 @@ export const iconMap = {
   logout: BoldLogout,
   cashier: BoldWallet2,
   profile: BoldUser,
+  modules: Workflow,
+  organizations: Workflow,
 };

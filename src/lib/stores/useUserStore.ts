@@ -34,7 +34,7 @@ type UserStore = {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
   updateUser: (updates: Partial<User>) => void;
   updatePreferences: (section: keyof UserPreferences, data: any) => void;
   logout: () => void;
@@ -51,7 +51,7 @@ export const useUserStore = create<UserStore>()(
       setUser: (user) =>
         set({
           user,
-          isAuthenticated: true,
+          isAuthenticated: !!user,
           loading: false,
         }),
 

@@ -1,17 +1,8 @@
 import type { Metadata } from "next";
-import { Figtree, Geist, Geist_Mono } from "next/font/google";
+import { Figtree } from "next/font/google";
 import "./globals.css";
-import MainLayout from "@/components/MainLayout/MainLayout";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { Providers } from "./providers";
+import { Toaster } from "sonner";
 
 const fig_tree = Figtree({
   weight: ["400", "500", "600", "700", "800"],
@@ -31,16 +22,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let user;
-
   return (
     <html lang="en">
       <body
-        className={`${fig_tree.variable} antialiased`}
+        className={` antialiased ${fig_tree.variable}`}
+        suppressHydrationWarning
       >
-        <MainLayout>
+        <Providers>
           {children}
-        </MainLayout>
+          <Toaster richColors position="top-right" closeButton />
+        </Providers>
       </body>
     </html>
   );

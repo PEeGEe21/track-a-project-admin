@@ -4,18 +4,28 @@ export const menus: Module[] = [
   {
     id: "dashboard",
     name: "Dashboard",
-    path: "/",
+    path: "/dashboard",
+  },
+  {
+    id: "modules",
+    name: "Modules",
+    path: "/modules",
+  },
+  {
+    id: "organizations",
+    name: "Organizations",
+    path: "/organizations",
   },
   {
     id: "users",
     name: "Users",
     path: "/users",
   },
-  {
-    id: "projects",
-    name: "Projects",
-    path: "/projects",
-  },
+  // {
+  //   id: "projects",
+  //   name: "Projects",
+  //   path: "/projects",
+  // },
   {
     id: "reports",
     name: "Reports",

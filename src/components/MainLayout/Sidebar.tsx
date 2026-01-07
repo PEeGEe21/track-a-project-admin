@@ -1,10 +1,7 @@
 "use client";
 
 import { menus } from "@/config/modules";
-import {
-  Menu,
-  ChevronDown,
-} from "lucide-react";
+import { Menu, ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -18,6 +15,8 @@ import { useSideBarCollapse } from "@/lib/stores/useSideBarCollapse";
 import { useSideBarDropdownMenu } from "@/lib/stores/useSideBarDropdownMenu";
 import { BoldLogout } from "@/lib/icons/iconJSX";
 import clsx from "clsx";
+import { start } from "repl";
+import { startsWith } from "zod";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -33,13 +32,11 @@ export default function Sidebar() {
       >
         <div className="p-4 flex items-center justify-between border-b border-[#2B2B2B] h-[72px]">
           {!isCollapsed && (
-            <h1 className="text-xl font-bold whitespace-nowrap">
-              Admin
-            </h1>
+            <h1 className="text-xl font-bold whitespace-nowrap">Admin</h1>
           )}
           <button
             onClick={() => toggleSidebar()}
-            className="p-2 hover:bg-[#212121] rounded"
+            className="p-2 hover:bg-[#212121] rounded cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -48,7 +45,9 @@ export default function Sidebar() {
         <nav className="flex-1 p-4 space-y-2">
           <ul className="text-neutral-500 text-xs space-y-2">
             {menus.map((module) => {
-              const isActive = pathname === module.path;
+              const isActive =
+                pathname === module.path ||
+                module.children?.some((child) => child.path === pathname);
               const hasChildren = module.children && module.children.length > 0;
               const dropdownOpen = isOpen(module.name);
               const IconComponent = iconMap[module.id as keyof typeof iconMap];
@@ -65,7 +64,7 @@ export default function Sidebar() {
                       className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group h-11 font-normal whitespace-nowrap! ${
                         isActive
                           ? "bg-[#ADED221A] text-white "
-                          : "text-white hover:bg-[#ADED221A] bg-vampire-black"
+                          : "text-white hover:bg-[#212121] bg-vampire-black"
                       } ${isCollapsed ? "justify-center" : "justify-between"}`}
                       title={!isCollapsed ? module.name : undefined}
                     >
@@ -98,7 +97,7 @@ export default function Sidebar() {
                       className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group h-11 font-normal whitespace-nowrap! cursor-pointer ${
                         isActive
                           ? "bg-[#ADED221A] text-white "
-                          : "text-white hover:bg-[#ADED221A] bg-vampire-black"
+                          : "text-white hover:bg-[#212121] bg-vampire-black"
                       } ${isCollapsed ? "justify-center" : "justify-between"}`}
                       title={isCollapsed ? module.name : undefined}
                     >
