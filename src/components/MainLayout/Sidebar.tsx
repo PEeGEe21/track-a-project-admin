@@ -47,7 +47,8 @@ export default function Sidebar() {
             {menus.map((module) => {
               const isActive =
                 pathname === module.path ||
-                module.children?.some((child) => child.path === pathname);
+                module.children?.some((child) => child.path === pathname) ||
+                pathname.startsWith(module.path + "/");
               const hasChildren = module.children && module.children.length > 0;
               const dropdownOpen = isOpen(module.name);
               const IconComponent = iconMap[module.id as keyof typeof iconMap];

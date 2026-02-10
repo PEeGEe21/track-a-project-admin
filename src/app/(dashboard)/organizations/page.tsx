@@ -4,6 +4,7 @@ import Pagination from "@/components/Pagination";
 import showToast from "@/components/ToastComponent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,8 @@ import {
 import { getOrganizations } from "@/app/actions/organizations";
 import { format } from "date-fns";
 import Link from "next/link";
+import { Download } from "@solar-icons/react";
+import { TrashBin2 } from "@solar-icons/react";
 
 const statuses = [
   { label: "All", value: "all" },
@@ -60,7 +63,8 @@ export default function page() {
   const [searchQuery, setSearchQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [orderBy,] = useState<"ASC" | "DESC">("ASC");
+  const [orderBy] = useState<"ASC" | "DESC">("ASC");
+  const [selectedOrgs, setSelectedOrgs] = useState<string[]>([]);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   const { data, isLoading, isError, error } = useQuery({
@@ -99,6 +103,40 @@ export default function page() {
 
   const organizations: Organization[] = data?.success ? data.data.data : [];
   const meta = data?.success ? data.data.meta : null;
+
+  // Bulk operations handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedOrgs(organizations.map((org) => org.id));
+    } else {
+      setSelectedOrgs([]);
+    }
+  };
+
+  const handleSelectOrg = (orgId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedOrgs([...selectedOrgs, orgId]);
+    } else {
+      setSelectedOrgs(selectedOrgs.filter((id) => id !== orgId));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedOrgs.length === 0) return;
+    console.log("Deleting organizations:", selectedOrgs);
+    showToast("success", `Deleting ${selectedOrgs.length} organizations`);
+  };
+
+  const handleBulkExport = () => {
+    if (selectedOrgs.length === 0) return;
+    console.log("Exporting organizations:", selectedOrgs);
+    showToast("success", `Exporting ${selectedOrgs.length} organizations`);
+  };
+
+  const isAllSelected =
+    organizations.length > 0 && selectedOrgs.length === organizations.length;
+  const isSomeSelected =
+    selectedOrgs.length > 0 && selectedOrgs.length < organizations.length;
 
   return (
     <>
@@ -183,9 +221,29 @@ export default function page() {
               </div>
 
               <div className="space-x-3">
-                <Button className="border border-[#2B2B2B] bg-[#212121] cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
-                  Export
-                </Button>
+                {selectedOrgs.length > 0 ? (
+                  <>
+                    <Button
+                      onClick={handleBulkExport}
+                      className="border border-[#2B2B2B] bg-[#212121] hover:bg-[#2B2B2B] cursor-pointer"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export ({selectedOrgs.length})
+                    </Button>
+                    <Button
+                      onClick={handleBulkDelete}
+                      variant="destructive"
+                      className="cursor-pointer"
+                    >
+                      <TrashBin2 className="h-4 w-4 mr-2" />
+                      Delete ({selectedOrgs.length})
+                    </Button>
+                  </>
+                ) : (
+                  <Button className="border border-[#2B2B2B] bg-[#212121] cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
+                    Export
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -195,9 +253,15 @@ export default function page() {
               <Table>
                 <TableHeader className=" text-[#999999]">
                   <TableRow className="bg-[#1F1F1F] hover:bg-[#1F1F1F] uppercase font-medium text-[#999999]! border-b border-[#2B2B2B]">
-                    <TableHead className="rounded-tl-lg! text-[#999999]!">
-                      #
+                    <TableHead className="rounded-tl-lg! w-12 text-[#999999]!">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all"
+                        className="border-[#999999]"
+                      />
                     </TableHead>
+                    <TableHead className=" text-[#999999]!">#</TableHead>
                     <TableHead className="text-[#999999]">Name</TableHead>
                     <TableHead className="text-[#999999]">Admin</TableHead>
                     <TableHead className="text-[#999999]">Status</TableHead>
@@ -219,7 +283,7 @@ export default function page() {
                   {isLoading ? (
                     <TableRow className="hover:bg-[#212121]">
                       <TableCell
-                        colSpan={8}
+                        colSpan={9}
                         className="text-center py-8 text-gray-500"
                       >
                         <div className="flex items-center justify-center">
@@ -230,7 +294,7 @@ export default function page() {
                   ) : organizations.length === 0 ? (
                     <TableRow className="hover:bg-[#212121]">
                       <TableCell
-                        colSpan={8}
+                        colSpan={9}
                         className="text-center py-8 text-gray-500"
                       >
                         No organizations found
@@ -239,6 +303,16 @@ export default function page() {
                   ) : (
                     organizations?.map((org, index) => (
                       <TableRow key={org.id} className="hover:bg-[#212121]">
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedOrgs.includes(org.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectOrg(org.id, checked as boolean)
+                            }
+                            aria-label={`Select ${org.name}`}
+                            className="border-gray-400"
+                          />
+                        </TableCell>
                         <TableCell>
                           {(currentPage - 1) * meta?.per_page + index + 1}
                         </TableCell>

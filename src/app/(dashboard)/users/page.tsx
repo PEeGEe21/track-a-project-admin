@@ -33,6 +33,10 @@ import {
 import { ROLES } from "@/lib/constants";
 import { formatDateTimeDistance } from "@/lib/utils";
 import { User } from "@/types/user";
+import Link from "next/link";
+import { Download } from "@solar-icons/react";
+import { TrashBin2 } from "@solar-icons/react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const statuses = [
   { label: "All", value: "all" },
@@ -58,7 +62,8 @@ export default function Users() {
   const [status, setStatus] = useState("all");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [orderBy, ] = useState<"ASC" | "DESC">("ASC");
+  const [orderBy] = useState<"ASC" | "DESC">("ASC");
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   // const handlePageChange = (newPage: number) => {
@@ -136,6 +141,40 @@ export default function Users() {
 
   const users: User[] = data?.success ? data.data.data : [];
   const meta = data?.success ? data.data.meta : null;
+
+  // Bulk operations handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedUsers(users.map((org) => org.id));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+
+  const handleSelectUser = (userId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedUsers([...selectedUsers, userId]);
+    } else {
+      setSelectedUsers(selectedUsers.filter((id) => id !== userId));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedUsers.length === 0) return;
+    console.log("Deleting users:", selectedUsers);
+    showToast("success", `Deleting ${selectedUsers.length} users`);
+  };
+
+  const handleBulkExport = () => {
+    if (selectedUsers.length === 0) return;
+    console.log("Exporting users:", selectedUsers);
+    showToast("success", `Exporting ${selectedUsers.length} users`);
+  };
+
+  const isAllSelected =
+    users.length > 0 && selectedUsers.length === users.length;
+  const isSomeSelected =
+    selectedUsers.length > 0 && selectedUsers.length < users.length;
 
   return (
     <>
@@ -218,9 +257,29 @@ export default function Users() {
               </div>
 
               <div className="space-x-3">
-                <Button className="border border-[#2B2B2B] bg-[#212121] cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
-                  Export
-                </Button>
+                {selectedUsers.length > 0 ? (
+                  <>
+                    <Button
+                      onClick={handleBulkExport}
+                      className="border border-[#2B2B2B] bg-[#212121] hover:bg-[#2B2B2B] cursor-pointer"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export ({selectedUsers.length})
+                    </Button>
+                    <Button
+                      onClick={handleBulkDelete}
+                      variant="destructive"
+                      className="cursor-pointer"
+                    >
+                      <TrashBin2 className="h-4 w-4 mr-2" />
+                      Delete ({selectedUsers.length})
+                    </Button>
+                  </>
+                ) : (
+                  <Button className="border border-[#2B2B2B] bg-[#212121] cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
+                    Export
+                  </Button>
+                )}
 
                 <Button className="border border-[#2B2B2B] bg-[#ADED221A]! cursor-pointer shadow-none outline-0 ring-0 focus-visible:outline-none focus-visible:ring-0 focus-within:ring-0 focus:shadow-none focus:ring-0 focus:outline-0 ring-offset-0 focus:ring-offset-0">
                   Add User
@@ -234,9 +293,15 @@ export default function Users() {
               <Table>
                 <TableHeader className=" text-[#999999]">
                   <TableRow className="bg-[#1F1F1F] hover:bg-[#1F1F1F] uppercase font-medium text-[#999999]! border-b border-[#2B2B2B]">
-                    <TableHead className="rounded-tl-lg! text-[#999999]!">
-                      #
+                    <TableHead className="rounded-tl-lg! w-12 text-[#999999]!">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all"
+                        className="border-[#999999]"
+                      />
                     </TableHead>
+                    <TableHead className="text-[#999999]!">#</TableHead>
                     <TableHead className="text-[#999999]">User</TableHead>
                     <TableHead className="text-[#999999]">Role</TableHead>
                     <TableHead className="text-[#999999]">Status</TableHead>
@@ -255,7 +320,7 @@ export default function Users() {
                   {isLoading ? (
                     <TableRow className="hover:bg-[#212121]">
                       <TableCell
-                        colSpan={7}
+                        colSpan={8}
                         className="text-center py-8 text-gray-500"
                       >
                         <div className="flex items-center justify-center">
@@ -266,7 +331,7 @@ export default function Users() {
                   ) : users.length === 0 ? (
                     <TableRow className="hover:bg-[#212121]">
                       <TableCell
-                        colSpan={7}
+                        colSpan={8}
                         className="text-center py-8 text-gray-500"
                       >
                         No users found
@@ -276,10 +341,23 @@ export default function Users() {
                     users?.map((user, index) => (
                       <TableRow key={user.id} className="hover:bg-[#212121]">
                         <TableCell>
+                          <Checkbox
+                            checked={selectedUsers.includes(user.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectUser(user.id, checked as boolean)
+                            }
+                            aria-label={`Select ${user.fullName}`}
+                            className="border-gray-400"
+                          />
+                        </TableCell>
+                        <TableCell>
                           {(currentPage - 1) * meta?.per_page + index + 1}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-3">
+                          <Link
+                            href={`/users/${user.id}`}
+                            className="flex items-center gap-3"
+                          >
                             <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                               {user.avatar}
                             </div>
@@ -296,7 +374,7 @@ export default function Users() {
                               <span className="text-base">{user.fullName}</span>
                               <span>{user?.email}</span>
                             </div>
-                          </div>
+                          </Link>
                         </TableCell>
 
                         <TableCell>{user ? ROLES[user.role] : "-"}</TableCell>
@@ -315,11 +393,14 @@ export default function Users() {
                         <TableCell>
                           {user?.user_organizations?.length ? (
                             user.user_organizations.map((org, index) => (
-                              <span key={org.id}>
+                              <Link
+                                href={`/organizations/${org.organization.id}`}
+                                key={org.id}
+                              >
                                 {org.organization.name}
                                 {index < user.user_organizations.length - 1 &&
                                   ", "}
-                              </span>
+                              </Link>
                             ))
                           ) : (
                             <span className="text-gray-400">
@@ -346,9 +427,11 @@ export default function Users() {
                                 Email User
                               </DropdownMenuItem>
 
-                              <DropdownMenuItem className="hover:bg-gray-100 cursor-pointer text-red-600">
-                                Delete User
-                              </DropdownMenuItem>
+                              {user.role !== "super_admin" && (
+                                <DropdownMenuItem className="hover:bg-gray-100 cursor-pointer text-red-600">
+                                  Delete User
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

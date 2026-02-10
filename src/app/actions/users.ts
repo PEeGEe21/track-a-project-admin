@@ -12,7 +12,7 @@ type GetUsersParams = {
 };
 
 export async function getUsers(page: number, params: GetUsersParams) {
-  const access_token = (await cookies()).get("access_token")?.value;
+  const access_token = (await cookies()).get("admin_access_token")?.value;
 
   const queryParams = new URLSearchParams({ page: String(page) });
 
@@ -63,7 +63,7 @@ export async function getUsers(page: number, params: GetUsersParams) {
 }
 
 export async function activateUser(id: number) {
-  const access_token = (await cookies()).get("access_token")?.value;
+  const access_token = (await cookies()).get("admin_access_token")?.value;
 
   try {
     const response = await fetch(`${endpoint}/invite/accept/${id}`, {
@@ -89,8 +89,35 @@ export async function activateUser(id: number) {
   }
 }
 
+export async function getUserById(id: number) {
+  const access_token = (await cookies()).get("admin_access_token")?.value;
+
+  try {
+    const response = await fetch(`${endpoint}/${id}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: data.message || "Something went wrong",
+      };
+    }
+
+    console.log(data , 'ni')
+    return data;
+  } catch {
+    return { success: false, message: "Failed to Accept" };
+  }
+}
+
 export async function rejectUser(id: number) {
-  const access_token = (await cookies()).get("access_token")?.value;
+  const access_token = (await cookies()).get("admin_access_token")?.value;
 
   try {
     const response = await fetch(`${endpoint}/invite/reject/${id}`, {
@@ -117,7 +144,7 @@ export async function rejectUser(id: number) {
 }
 
 export async function deleteUser(id: number) {
-  const access_token = (await cookies()).get("access_token")?.value;
+  const access_token = (await cookies()).get("admin_access_token")?.value;
 
   try {
     const response = await fetch(`${endpoint}/invite/reject/${id}`, {

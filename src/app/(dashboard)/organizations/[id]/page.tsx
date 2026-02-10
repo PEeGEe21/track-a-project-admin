@@ -55,6 +55,7 @@ import {
 } from "@/app/actions/organizations";
 import { ROLES } from "@/lib/constants";
 import { UserProps, UserRole } from "@/types/user";
+import { useRouter } from "next/navigation";
 
 // Types
 type Organization = {
@@ -107,7 +108,7 @@ export default function OrganizationDetailPage({
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const queryClient = useQueryClient();
-
+  const router = useRouter();
   // Unwrap params Promise
   const { id } = use(params);
 
@@ -155,15 +156,15 @@ export default function OrganizationDetailPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/organizations">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="border border-[#2B2B2B] bg-[#212121]"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="border border-[#2B2B2B] bg-[#212121] cursor-pointer"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          
           <div>
             <h1 className="text-2xl font-bold text-white">
               {organization?.name}
@@ -506,37 +507,37 @@ export default function OrganizationDetailPage({
                       >
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {!menu.has_tier_access && (
+                            {!menu?.has_tier_access && (
                               <Lock className="h-4 w-4 text-yellow-500" />
                             )}
                             <span className="text-white">
-                              {menu.custom_label || menu.global_menu.label}
+                              {menu?.custom_label || menu?.global_menu?.label}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-gray-400">
-                          {menu.global_menu.href}
+                          {menu?.global_menu?.href}
                         </TableCell>
                         <TableCell className="text-gray-400">
-                          {menu.global_menu.icon || "N/A"}
+                          {menu?.global_menu?.icon || "N/A"}
                         </TableCell>
                         <TableCell className="text-gray-400">
-                          {menu.order_index}
+                          {menu?.order_index}
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant="outline"
                             className={`${
-                              menu.requires_upgrade
+                              menu?.requires_upgrade
                                 ? "border-yellow-500 text-yellow-500"
                                 : "border-green-500 text-green-500"
                             }`}
                           >
-                            {menu.global_menu.required_tier}
+                            {menu?.global_menu?.required_tier}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {menu.requires_upgrade ? (
+                          {menu?.requires_upgrade ? (
                             <Badge
                               variant="outline"
                               className="border-yellow-500 text-yellow-500"
@@ -545,8 +546,8 @@ export default function OrganizationDetailPage({
                             </Badge>
                           ) : (
                             <Switch
-                              checked={menu.is_enabled}
-                              disabled={!menu.has_tier_access}
+                              checked={menu?.is_enabled}
+                              disabled={!menu?.has_tier_access}
                               className="
                                     data-[state=checked]:bg-green-500
                                     data-[state=unchecked]:bg-red-500
@@ -555,7 +556,7 @@ export default function OrganizationDetailPage({
                           )}
                         </TableCell>
                         <TableCell>
-                          {menu.requires_upgrade ? (
+                          {menu?.requires_upgrade ? (
                             <Button
                               size="sm"
                               className="bg-yellow-600 hover:bg-yellow-700"

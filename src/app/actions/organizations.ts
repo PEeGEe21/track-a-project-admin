@@ -12,12 +12,11 @@ type GetOrganizationsParams = {
   orderBy?: "ASC" | "DESC";
 };
 
-
 export async function getOrganizations(
   page: number,
   params: GetOrganizationsParams
 ) {
-  const access_token = (await cookies()).get("access_token")?.value;
+  const access_token = (await cookies()).get("admin_access_token")?.value;
 
   const queryParams = new URLSearchParams({ page: String(page) });
 
@@ -69,7 +68,7 @@ export async function getOrganizations(
   }
 }
 
-// Delete global menu
+// global menu
 export async function getOrganization(id: string) {
   const response = await fetchWithAuth(`/organizations/${id}`);
 
@@ -113,4 +112,27 @@ export async function getOrganizationMenus(id: string) {
   }
 
   return data.data;
+}
+
+export async function getOrganizationMenu2(organizationId: string) {
+  const response = await fetchWithAuth(`/menus/organization`, {
+    organizationId,
+  });
+  console.log(organizationId, "organizationId");
+  const data = await response.json();
+
+  if (!response.ok) {
+    return {
+      success: false,
+      message: data.message || "Something went wrong",
+    };
+  }
+  console.log(data, "datummm");
+  return data;
+
+  // return {
+  //   success: true,
+  //   message: data.message || "Successfully fetched menus",
+  //   data,
+  // };
 }

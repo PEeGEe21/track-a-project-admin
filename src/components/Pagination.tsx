@@ -54,7 +54,7 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between border-t border-[#2B2B2B] bg-[#171717] px-4 py-3 sm:px-4 w-full rounded-b-lg text-white">
+    <div className="flex items-center justify-between border-t border-[#2B2B2B] bg-[#171717] py-3 sm:px-4 w-full rounded-b-lg text-white">
       {/* Mobile View */}
       <div className="flex flex-1 justify-between sm:hidden">
         <button

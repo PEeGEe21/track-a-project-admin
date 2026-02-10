@@ -23,7 +23,7 @@ function isTokenExpired(token: string): boolean {
 }
 
 export async function proxy(request: NextRequest) {
-  const accessToken = request.cookies.get("access_token")?.value || null;
+  const accessToken = request.cookies.get("admin_access_token")?.value || null;
   const pathname = request.nextUrl.pathname;
 
   const isAuthPage = pathname.startsWith("/auth");
@@ -39,7 +39,7 @@ export async function proxy(request: NextRequest) {
 
   if (!isValidAuth && !isAuthPage) {
     const response = NextResponse.redirect(new URL("/auth/sign-in", request.url));
-    response.cookies.delete("access_token");
+    response.cookies.delete("admin_access_token");
     return response;
   }
 

@@ -22,17 +22,17 @@ const SubmitButton: React.FC<{ disabled: boolean; isSubmitting: boolean }> = ({
       type="submit"
       disabled={disabled}
       className={cn(
-        "w-full py-2 rounded-md bg-[#ADED221A] border border-[#0A0A0A] hover:border-[#2B2B2B] hover:bg-[#212121] text-white font-semibold h-12 transition-all ease-in-out flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+        "w-full py-2 rounded-md bg-[#ADED221A] border border-[#ADED221A] hover:border-[#ADED221A] hover:bg-[#ADED221A] text-white font-semibold h-12 transition-all ease-in-out flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
         disabled && "opacity-40"
       )}
     >
-      {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
+      {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Continue"}
     </button>
   );
 };
 
 const SignInForm = () => {
-  const { setUser } = useUserStore();
+  const { setUser, user } = useUserStore();
   const [message, setMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<boolean | null>(null);
   const router = useRouter();
@@ -43,9 +43,12 @@ const SignInForm = () => {
     formState: { errors, isSubmitting },
     setError,
     reset,
+    watch,
   } = useForm<signInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
+
+  const validEmail = watch("email");
 
   const onSubmit = async (data: signInSchemaType) => {
     const formData = new FormData();
@@ -67,9 +70,11 @@ const SignInForm = () => {
       });
       setStatus(false);
     } else {
+      console.log(res, "res")
       if (res.status) {
         if (res.data) {
           setUser(res?.data);
+          console.log(user, "user login")
           setStatus(res.status ?? true);
           router.push("/dashboard");
           reset();
@@ -108,16 +113,16 @@ const SignInForm = () => {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="space-y-6">
+        <div className="space-y-3">
           <div>
-            <label className="block text-sm mb-2 text-chinese-gray">
+            <label className="block text-sm mb-2 text-[#999999]">
               Email
             </label>
             <input
               type="text"
               {...register("email")}
               className={clsx(
-                "w-full rounded-md border border-[#2B2B2B] bg-[#212121] px-4 py-3 text-sm h-12 transition duration-300 focus:outline-none focus:border-[#2B2B2B]",
+                "w-full rounded-md border border-[#2B2B2B] bg-[#171717] px-4 py-3 text-sm h-12 transition duration-300 focus:outline-none focus:border-[#2B2B2B]",
                 errors.email && "border border-red-500"
               )}
             />
@@ -129,14 +134,14 @@ const SignInForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm mb-2 text-chinese-gray">
+            <label className="block text-sm mb-2 text-[#999999]">
               Password
             </label>
             <input
               type="password"
               {...register("password")}
               className={clsx(
-                "w-full rounded-md border border-[#2B2B2B] bg-[#212121] px-4 py-3 text-sm h-12 transition duration-300 focus:outline-none focus:border-[#2B2B2B]",
+                "w-full rounded-md border border-[#2B2B2B] bg-[#171717] px-4 py-3 text-sm h-12 transition duration-300 focus:outline-none focus:border-[#2B2B2B]",
                 errors.password && "border border-red-500"
               )}
             />
@@ -148,7 +153,10 @@ const SignInForm = () => {
           </div>
 
           <div>
-            <SubmitButton disabled={isSubmitting} isSubmitting={isSubmitting} />
+            <SubmitButton
+              disabled={isSubmitting || !validEmail}
+              isSubmitting={isSubmitting}
+            />
           </div>
         </div>
       </form>

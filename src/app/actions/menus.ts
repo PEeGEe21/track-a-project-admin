@@ -33,7 +33,7 @@ const endpoint = API_URL + "/menus";
 // }
 
 export async function getGlobalMenus() {
-  const access_token = (await cookies()).get("access_token")?.value;
+  const access_token = (await cookies()).get("admin_access_token")?.value;
 
   try {
     const response = await fetch(`${endpoint}/global`, {
@@ -59,7 +59,7 @@ export async function getGlobalMenus() {
 }
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const access_token = (await cookies()).get("access_token")?.value;
+  const access_token = (await cookies()).get("admin_access_token")?.value;
   const response = await fetch(`${API_URL}${url}`, {
     ...options,
     headers: {

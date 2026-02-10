@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchWithAuth } from "@/lib/fetch-config";
+import { fetchPublic, fetchWithAuth } from "@/lib/fetch-config";
 import { signInSchema } from "@/lib/schemas";
 import { signInSchemaType } from "@/types/schema";
 import { UserProps } from "@/types/user";
@@ -34,7 +34,7 @@ export async function login(
 
   // console.log(dataToSubmit)
   try {
-    const response = await fetchWithAuth("/auth/login-admin", {
+    const response = await fetchPublic("/auth/login-admin", {
       method: "POST",
       body: JSON.stringify(dataToSubmit),
     });
@@ -52,7 +52,7 @@ export async function login(
     }
 
     cookieStore.set({
-      name: "access_token",
+      name: "admin_access_token",
       httpOnly: true,
       value: data?.accessToken,
       sameSite: "lax",
@@ -61,7 +61,7 @@ export async function login(
     });
 
     cookieStore.set({
-      name: "refresh_token",
+      name: "admin_refresh_token",
       httpOnly: true,
       value: data?.refreshToken,
       sameSite: "strict",
@@ -91,7 +91,7 @@ export async function login(
 export async function logoutUser() {
   const cookiesFunc = await cookies();
   try {
-    const refresh_token = (await cookies()).get("refresh_token")?.value;
+    const refresh_token = (await cookies()).get("admin_refresh_token")?.value;
 
     const response = await fetchWithAuth("/auth/logout", {
       method: "POST",
@@ -106,8 +106,8 @@ export async function logoutUser() {
     }
 
     // Clear all auth-related cookies
-    cookiesFunc.delete("access_token");
-    cookiesFunc.delete("refresh_token");
+    cookiesFunc.delete("admin_access_token");
+    cookiesFunc.delete("admin_refresh_token");
 
     return { success: true, message: "Logged out successfully" };
   } catch {
