@@ -2,8 +2,9 @@
 
 import { cookies } from "next/headers";
 import { CreateMenuDto, UpdateMenuDto, ReorderMenuDto } from "@/types/menu";
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-const endpoint = API_URL + "/menus";
+import { fetchWithAuth } from "@/lib/fetch-config";
+// const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const endpoint = "/menus";
 
 // export async function getMenus() {
 //   //   const access_token = (await cookies()).get("access_token")?.value;
@@ -36,7 +37,7 @@ export async function getGlobalMenus() {
   const access_token = (await cookies()).get("admin_access_token")?.value;
 
   try {
-    const response = await fetch(`${endpoint}/global`, {
+    const response = await fetchWithAuth(`${endpoint}/global`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${access_token}`,
@@ -58,13 +59,11 @@ export async function getGlobalMenus() {
   }
 }
 
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const access_token = (await cookies()).get("admin_access_token")?.value;
-  const response = await fetch(`${API_URL}${url}`, {
+async function fetchData(url: string, options: RequestInit = {}) {
+  const response = await fetchWithAuth(`${url}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${access_token}`,
       ...options.headers,
     },
   });
@@ -84,12 +83,12 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 // Get organization menus
 export async function getMenus() {
-  return fetchWithAuth("/menus");
+  return fetchData("/menus");
 }
 
 // Create global menu
 export async function createGlobalMenu(menu: CreateMenuDto) {
-  return fetchWithAuth("/menus/global", {
+  return fetchData("/menus/global", {
     method: "POST",
     body: JSON.stringify(menu),
   });
@@ -97,7 +96,7 @@ export async function createGlobalMenu(menu: CreateMenuDto) {
 
 // Update global menu
 export async function updateGlobalMenu(id: string, updates: UpdateMenuDto) {
-  return fetchWithAuth(`/menus/global/${id}`, {
+  return fetchData(`/menus/global/${id}`, {
     method: "PUT",
     body: JSON.stringify(updates),
   });
@@ -105,14 +104,14 @@ export async function updateGlobalMenu(id: string, updates: UpdateMenuDto) {
 
 // Delete global menu
 export async function deleteGlobalMenu(id: string) {
-  return fetchWithAuth(`/menus/global/${id}`, {
+  return fetchData(`/menus/global/${id}`, {
     method: "DELETE",
   });
 }
 
 // Reorder menus (batch update)
 export async function reorderMenus(items: ReorderMenuDto[]) {
-  return fetchWithAuth("/menus/global/reorder", {
+  return fetchData("/menus/global/reorder", {
     method: "POST",
     body: JSON.stringify({ items }),
   });

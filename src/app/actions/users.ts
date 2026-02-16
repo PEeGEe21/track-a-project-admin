@@ -1,8 +1,8 @@
 "use server";
 
+import { fetchWithAuth } from "@/lib/fetch-config";
 import { cookies } from "next/headers";
-const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-const endpoint = baseUrl + "/users";
+const endpoint = "/users";
 
 type GetUsersParams = {
   limit?: number;
@@ -33,12 +33,14 @@ export async function getUsers(page: number, params: GetUsersParams) {
   }
 
   try {
-    const response = await fetch(`${endpoint}?${queryParams.toString()}`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
+    const response = await fetchWithAuth(
+      `${endpoint}?${queryParams.toString()}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     const data = await response.json();
 
@@ -63,14 +65,11 @@ export async function getUsers(page: number, params: GetUsersParams) {
 }
 
 export async function activateUser(id: number) {
-  const access_token = (await cookies()).get("admin_access_token")?.value;
-
   try {
-    const response = await fetch(`${endpoint}/invite/accept/${id}`, {
+    const response = await fetchWithAuth(`${endpoint}/invite/accept/${id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
       },
     });
 
@@ -90,13 +89,10 @@ export async function activateUser(id: number) {
 }
 
 export async function getUserById(id: number) {
-  const access_token = (await cookies()).get("admin_access_token")?.value;
-
   try {
-    const response = await fetch(`${endpoint}/${id}`, {
+    const response = await fetchWithAuth(`${endpoint}/${id}`, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
       },
     });
 
@@ -109,7 +105,7 @@ export async function getUserById(id: number) {
       };
     }
 
-    console.log(data , 'ni')
+    console.log(data, "ni");
     return data;
   } catch {
     return { success: false, message: "Failed to Accept" };
@@ -117,14 +113,11 @@ export async function getUserById(id: number) {
 }
 
 export async function rejectUser(id: number) {
-  const access_token = (await cookies()).get("admin_access_token")?.value;
-
   try {
-    const response = await fetch(`${endpoint}/invite/reject/${id}`, {
+    const response = await fetchWithAuth(`${endpoint}/invite/reject/${id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
       },
     });
 
@@ -144,14 +137,11 @@ export async function rejectUser(id: number) {
 }
 
 export async function deleteUser(id: number) {
-  const access_token = (await cookies()).get("admin_access_token")?.value;
-
   try {
-    const response = await fetch(`${endpoint}/invite/reject/${id}`, {
+    const response = await fetchWithAuth(`${endpoint}/invite/reject/${id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
       },
     });
 

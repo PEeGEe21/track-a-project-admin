@@ -2,8 +2,7 @@
 
 import { fetchWithAuth } from "@/lib/fetch-config";
 import { cookies } from "next/headers";
-const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-const endpoint = baseUrl + "/organizations";
+const endpoint = "/organizations";
 
 type GetOrganizationsParams = {
   limit?: number;
@@ -37,7 +36,7 @@ export async function getOrganizations(
   }
 
   try {
-    const response = await fetch(`${endpoint}?${queryParams.toString()}`, {
+    const response = await fetchWithAuth(`${endpoint}?${queryParams.toString()}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${access_token}`,
