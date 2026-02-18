@@ -1,6 +1,6 @@
 "use client";
 
-import { getUsers } from "@/app/actions/users";
+import { getUsers, reActivateUser, suspendUser } from "@/app/actions/users";
 import Pagination from "@/components/Pagination";
 import showToast from "@/components/ToastComponent";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,24 @@ import {
 } from "@/components/ui/select";
 import useDebounce from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
-import { Loader, MoreHorizontal, Search, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Ban,
+  Loader,
+  Mail,
+  MoreHorizontal,
+  Search,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -37,6 +53,9 @@ import Link from "next/link";
 import { Download } from "@solar-icons/react";
 import { TrashBin2 } from "@solar-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Eye } from "@solar-icons/react";
+import { Badge } from "@/components/ui/badge";
+import { Login } from "@solar-icons/react";
 
 const statuses = [
   { label: "All", value: "all" },
@@ -56,6 +75,183 @@ const statuses = [
 //   organization: Organization;
 // };
 
+// ─── Impersonation Confirmation Dialog ───────────────────────────────────────
+function CurrentUserDialog({
+  user,
+  open,
+  onClose,
+}: {
+  user: User | null;
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  if (!user) return null;
+
+  console.log(user, "user");
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent>
+        <div className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <div className="w-20 h-20 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-semibold">
+              {user.avatar}
+            </div>
+            <div>
+              {/* <h4 className="text-xl font-semibold">{user?.fullName}</h4> */}
+              <h4 className="text-base font-semibold capitalize">
+                {user?.username}
+              </h4>
+              <p className="text-gray-600">{user.email}</p>
+              <span
+                className={`inline-block mt-2 px-3 py-1 text-xs rounded-full ${
+                  user.is_active
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {user.is_active ? "Active" : "Inactive"}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">Role</p>
+              <p className="text-lg font-semibold mt-1">{ROLES[user.role]}</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">Active Projects</p>
+              <p className="text-lg font-semibold mt-1">{user.projects}</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">Tasks Assigned</p>
+              <p className="text-lg font-semibold mt-1">{user.tasks}</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">Completion Rate</p>
+              <p className="text-lg font-semibold mt-1">87%</p>
+            </div>
+          </div>
+
+          <div>
+            <h5 className="font-semibold mb-3">Recent Activity</h5>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <span className="text-sm">
+                  Completed &quot;API Integration&quot;
+                </span>
+                <span className="text-xs text-gray-500">2 hours ago</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <span className="text-sm">
+                  Updated &quot;User Dashboard&quot;
+                </span>
+                <span className="text-xs text-gray-500">5 hours ago</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <span className="text-sm">Created new task</span>
+                <span className="text-xs text-gray-500">1 day ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+          <Button className="bg-amber-600 hover:bg-amber-700">
+            <Mail size={14} className="mr-1" />
+            Send Message
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ImpersonateDialog({
+  user,
+  open,
+  onClose,
+  onConfirm,
+}: {
+  user: User | null;
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  if (!user) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle size={20} className="text-amber-500" />
+            Sign in as User
+          </DialogTitle>
+          <DialogDescription>
+            You&apos;re about to log in as <strong>{user?.name}</strong>. All
+            actions will be logged for audit purposes.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+          <p className="text-sm font-medium text-amber-900">⚠️ Important</p>
+          <ul className="text-xs text-amber-700 space-y-1 ml-4 list-disc">
+            <li>You&apos;ll see exactly what this user sees</li>
+            <li>You can perform actions as this user</li>
+            <li>A banner will remind you that you&apos;re impersonating</li>
+            <li>
+              Click &quot;Exit Impersonation&quot; in the banner to return to
+              admin
+            </li>
+            <li>This session is logged and can be audited</li>
+          </ul>
+        </div>
+
+        <div className="bg-white border rounded-lg p-4">
+          <p className="text-sm font-medium text-gray-700 mb-2">User Details</p>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="text-gray-500">Email:</div>
+            <div className="font-medium text-gray-900">{user.email}</div>
+            <div className="text-gray-500">Organizations:</div>
+            <div className="font-medium text-gray-900">
+              {user.user_organizations.map((org, index) => (
+                <span key={org.id} className="capitalize">
+                  {org.organization.name}
+                  {index < user.user_organizations.length - 1 && ", "}
+                </span>
+              ))}
+            </div>
+            <div className="text-gray-500">Role:</div>
+            <div>
+              <Badge variant="outline" className="capitalize text-xs">
+                {ROLES[user.role]}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={onConfirm}
+            className="bg-amber-600 hover:bg-amber-700"
+          >
+            <Login size={14} className="mr-1.5" />
+            Confirm & Sign In
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Users() {
   const [pageLimit, setPageLimit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,6 +261,8 @@ export default function Users() {
   const [orderBy] = useState<"ASC" | "DESC">("ASC");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [currentUserOpen, setCurrentUserOpen] = useState(false);
+  const [impersonateOpen, setImpersonateOpen] = useState(false);
 
   // const handlePageChange = (newPage: number) => {
   //   setCurrentPage(newPage);
@@ -105,7 +303,7 @@ export default function Users() {
   // }, [debouncedSearchQuery, pageLimit, status, orderBy, fetchUsers]);
 
   // This replaces all your fetchUsers logic!
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: [
       "users",
       currentPage,
@@ -169,6 +367,52 @@ export default function Users() {
     if (selectedUsers.length === 0) return;
     console.log("Exporting users:", selectedUsers);
     showToast("success", `Exporting ${selectedUsers.length} users`);
+  };
+
+  // const handleImpersonate = async () => {
+  //   if (!selectedUser) return;
+
+  //   try {
+  // Call backend to get impersonation token
+  // const { data } = await api.post(
+  //   `/admin/users/${selectedUser.id}/impersonate`,
+  // );
+  // // Store impersonation token and user data
+  // setToken(data.token);
+  // setUser(data.user);
+  // // Store admin context for exit button
+  // sessionStorage.setItem("admin_impersonating", "true");
+  // sessionStorage.setItem(
+  //   "admin_original_token",
+  //   localStorage.getItem("token") || "",
+  // );
+  // setImpersonateOpen(false);
+  // Redirect to user's dashboard
+  // router.push("/dashboard");
+  //   } catch (error: any) {
+  //     console.error("Impersonation failed:", error);
+  //     alert(error?.response?.data?.message || "Failed to impersonate user");
+  //   }
+  // };
+
+  const handleSuspendUser = async (userId: number) => {
+    if (!confirm("Are you sure you want to suspend this user?")) return;
+    try {
+      await suspendUser(userId);
+      refetch();
+    } catch (error) {
+      console.error("Failed to suspend user:", error);
+    }
+  };
+
+  const handleActivateUser = async (userId: number) => {
+    if (!confirm("Are you sure you want to activate this user?")) return;
+    try {
+      await reActivateUser(userId);
+      refetch();
+    } catch (error) {
+      console.error("Failed to suspend user:", error);
+    }
   };
 
   const isAllSelected =
@@ -396,6 +640,7 @@ export default function Users() {
                               <Link
                                 href={`/organizations/${org.organization.id}`}
                                 key={org.id}
+                                className="capitalize"
                               >
                                 {org.organization.name}
                                 {index < user.user_organizations.length - 1 &&
@@ -414,7 +659,10 @@ export default function Users() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
+                              <Button
+                                variant="ghost"
+                                className="h-8 w-8 p-0 cursor-pointer"
+                              >
                                 <span className="sr-only">Open menu</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
@@ -423,14 +671,43 @@ export default function Users() {
                               align="end"
                               className="bg-white"
                             >
-                              <DropdownMenuItem className="hover:bg-gray-100 cursor-pointer">
-                                Email User
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setCurrentUserOpen(true);
+                                }}
+                                className="hover:bg-gray-100 cursor-pointer"
+                              >
+                                Open Details
                               </DropdownMenuItem>
 
                               {user.role !== "super_admin" && (
-                                <DropdownMenuItem className="hover:bg-gray-100 cursor-pointer text-red-600">
-                                  Delete User
-                                </DropdownMenuItem>
+                                <>
+                                  <DropdownMenuItem className="hover:bg-gray-100 cursor-pointer text-red-600">
+                                    Delete User
+                                  </DropdownMenuItem>
+
+                                  {/* <DropdownMen/>enuItem> */}
+                                  {user?.is_active ? (
+                                    <DropdownMenuItem
+                                      className="hover:bg-gray-100 cursor-pointer"
+                                      onClick={() => {
+                                        handleSuspendUser(user?.id);
+                                      }}
+                                    >
+                                      <Ban size={13} /> Ban
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      className="hover:bg-gray-100 cursor-pointer"
+                                      onClick={() => {
+                                        handleActivateUser(user?.id);
+                                      }}
+                                    >
+                                      Activate
+                                    </DropdownMenuItem>
+                                  )}
+                                </>
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -451,101 +728,27 @@ export default function Users() {
             )}
           </div>
         </div>
-
-        {selectedUser && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b flex justify-between items-center">
-                <h3 className="text-xl font-semibold">User Profile</h3>
-                <button
-                  onClick={() => setSelectedUser(null)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="p-6 space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-semibold">
-                    {selectedUser.avatar}
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-semibold">
-                      {selectedUser.name}
-                    </h4>
-                    <p className="text-gray-600">{selectedUser.email}</p>
-                    <span
-                      className={`inline-block mt-2 px-3 py-1 text-xs rounded-full ${
-                        selectedUser.is_active === "Active"
-                          ? "bg-green-100 text-green-800"
-                          : selectedUser.is_active === "Inactive"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {selectedUser.is_active}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Role</p>
-                    <p className="text-lg font-semibold mt-1">
-                      {selectedUser.role}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Active Projects</p>
-                    <p className="text-lg font-semibold mt-1">
-                      {selectedUser.projects}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Tasks Assigned</p>
-                    <p className="text-lg font-semibold mt-1">
-                      {selectedUser.tasks}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Completion Rate</p>
-                    <p className="text-lg font-semibold mt-1">87%</p>
-                  </div>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold mb-3">Recent Activity</h5>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-sm">
-                        Completed "API Integration"
-                      </span>
-                      <span className="text-xs text-gray-500">2 hours ago</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-sm">Updated "User Dashboard"</span>
-                      <span className="text-xs text-gray-500">5 hours ago</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-sm">Created new task</span>
-                      <span className="text-xs text-gray-500">1 day ago</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-                    Edit User
-                  </button>
-                  <button className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
-                    Send Message
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      <CurrentUserDialog
+        user={selectedUser}
+        open={currentUserOpen}
+        onClose={() => {
+          setCurrentUserOpen(false);
+          setSelectedUser(null);
+        }}
+        // onConfirm={handleImpersonate}
+      />
+
+      <ImpersonateDialog
+        user={selectedUser}
+        open={impersonateOpen}
+        onClose={() => {
+          setImpersonateOpen(false);
+          setSelectedUser(null);
+        }}
+        onConfirm={() => {}}
+      />
     </>
   );
 }

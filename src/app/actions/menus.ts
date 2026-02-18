@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { CreateMenuDto, UpdateMenuDto, ReorderMenuDto } from "@/types/menu";
 import { fetchWithAuth } from "@/lib/fetch-config";
 // const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-const endpoint = "/menus";
+const endpoint = "/admin/menus";
 
 // export async function getMenus() {
 //   //   const access_token = (await cookies()).get("access_token")?.value;
@@ -83,12 +83,12 @@ async function fetchData(url: string, options: RequestInit = {}) {
 
 // Get organization menus
 export async function getMenus() {
-  return fetchData("/menus");
+  return fetchData(`${endpoint}`);
 }
 
 // Create global menu
 export async function createGlobalMenu(menu: CreateMenuDto) {
-  return fetchData("/menus/global", {
+  return fetchData(`${endpoint}/menus/global`, {
     method: "POST",
     body: JSON.stringify(menu),
   });
@@ -96,7 +96,7 @@ export async function createGlobalMenu(menu: CreateMenuDto) {
 
 // Update global menu
 export async function updateGlobalMenu(id: string, updates: UpdateMenuDto) {
-  return fetchData(`/menus/global/${id}`, {
+  return fetchData(`${endpoint}/global/${id}`, {
     method: "PUT",
     body: JSON.stringify(updates),
   });
@@ -104,14 +104,14 @@ export async function updateGlobalMenu(id: string, updates: UpdateMenuDto) {
 
 // Delete global menu
 export async function deleteGlobalMenu(id: string) {
-  return fetchData(`/menus/global/${id}`, {
+  return fetchData(`${endpoint}/global/${id}`, {
     method: "DELETE",
   });
 }
 
 // Reorder menus (batch update)
 export async function reorderMenus(items: ReorderMenuDto[]) {
-  return fetchData("/menus/global/reorder", {
+  return fetchData(`${endpoint}/global/reorder`, {
     method: "POST",
     body: JSON.stringify({ items }),
   });

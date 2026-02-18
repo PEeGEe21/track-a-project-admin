@@ -43,7 +43,7 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
-          <ul className="text-neutral-500 text-xs space-y-2">
+          <ul className="text-neutral-500 text-xs space-y-1">
             {menus.map((module) => {
               const isActive =
                 pathname === module.path ||

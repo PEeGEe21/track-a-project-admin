@@ -9,8 +9,8 @@ export default function SignIn() {
         style={{
           backgroundColor: "#e5e5f7",
           opacity: "0.6",
-          backgroundImage:
-            "repeating-radial-gradient( circle at 0 0, transparent 0, #e5e5f7 10px ), repeating-linear-gradient( #00000055, #000000 )",
+          // backgroundImage:
+          //   "repeating-radial-gradient( circle at 0 0, transparent 0, #e5e5f7 10px ), repeating-linear-gradient( #00000055, #000000 )",
         }}
       ></div>
       <div className="p-0 h-screen flex items-center justify-center w-full max-w-lg mx-auto z-50 ">

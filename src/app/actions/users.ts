@@ -34,7 +34,7 @@ export async function getUsers(page: number, params: GetUsersParams) {
 
   try {
     const response = await fetchWithAuth(
-      `${endpoint}?${queryParams.toString()}`,
+      `/admin${endpoint}?${queryParams.toString()}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -85,6 +85,48 @@ export async function activateUser(id: number) {
     return { success: true, message: "Accepted Successfully", data: data };
   } catch {
     return { success: false, message: "Failed to Accept" };
+  }
+}
+
+export async function suspendUser(id: number) {
+  try {
+    const response = await fetchWithAuth(`/admin${endpoint}/${id}/suspend`, {
+      method: "PATCH",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: data.message || "Something went wrong",
+      };
+    }
+
+    return { success: true, message: "Success!!", data: data };
+  } catch {
+    return { success: false, message: "Failed to Suspend" };
+  }
+}
+
+export async function reActivateUser(id: number) {
+  try {
+    const response = await fetchWithAuth(`/admin${endpoint}/${id}/activate`, {
+      method: "PATCH",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: data.message || "Something went wrong",
+      };
+    }
+
+    return { success: true, message: "Success!!", data: data };
+  } catch {
+    return { success: false, message: "Failed to Suspend" };
   }
 }
 

@@ -21,6 +21,16 @@ export const menus: Module[] = [
     name: "Users",
     path: "/users",
   },
+  {
+    id: "subscriptions",
+    name: "Subscriptions",
+    path: "/subscriptions",
+  },
+  {
+    id: "plans",
+    name: "Plans",
+    path: "/plans",
+  },
   // {
   //   id: "projects",
   //   name: "Projects",

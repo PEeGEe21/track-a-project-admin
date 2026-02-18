@@ -38,7 +38,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!isValidAuth && !isAuthPage) {
-    const response = NextResponse.redirect(new URL("/auth/sign-in", request.url));
+    const response = NextResponse.redirect(new URL("/auth/login", request.url));
     response.cookies.delete("admin_access_token");
     return response;
   }

@@ -1,198 +1,444 @@
 "use client";
+
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Building2,
+  Users,
+  FolderKanban,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Activity,
+  Database,
+  Clock,
+  Zap,
+  ArrowUpRight,
+  ArrowDownRight,
+  RefreshCw,
+} from "lucide-react";
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  Legend,
 } from "recharts";
-import { Users, FolderKanban, Activity, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getDashboardData } from "@/app/actions/dashboard";
 
-export default function Home() {
-  // Mock data
-  const stats = [
-    {
-      title: "Total Users",
-      value: "2,847",
-      change: "+12.5%",
-      icon: Users,
-      color: "bg-blue-500",
-    },
-    {
-      title: "Active Projects",
-      value: "184",
-      change: "+8.2%",
-      icon: FolderKanban,
-      color: "bg-green-500",
-    },
-    {
-      title: "Tasks Completed",
-      value: "1,429",
-      change: "+23.1%",
-      icon: Activity,
-      color: "bg-purple-500",
-    },
-    {
-      title: "Revenue",
-      value: "$45.2K",
-      change: "+15.3%",
-      icon: TrendingUp,
-      color: "bg-orange-500",
-    },
-  ];
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface DashboardStats {
+  organizations: { total: number; active: number; growth: number };
+  users: { total: number; active: number; growth: number };
+  projects: { total: number; active: number };
+  revenue: { mrr: number; arr: number; growth: number };
+  storage: { used: number; total: number; percentage: number };
+  performance: { uptime: number; avgResponseTime: number; errorRate: number };
+}
 
-  const projectData = [
-    { month: "Jan", projects: 45, tasks: 320 },
-    { month: "Feb", projects: 52, tasks: 380 },
-    { month: "Mar", projects: 61, tasks: 450 },
-    { month: "Apr", projects: 58, tasks: 420 },
-    { month: "May", projects: 70, tasks: 510 },
-    { month: "Jun", projects: 82, tasks: 590 },
-  ];
+interface ChartData {
+  growthChart: Array<{ date: string; organizations: number; users: number }>;
+  revenueChart: Array<{ month: string; revenue: number; churn: number }>;
+  planDistribution: Array<{ name: string; value: number; color: string }>;
+}
 
-  const userStatusData = [
-    { name: "Active", value: 1847, color: "#10b981" },
-    { name: "Inactive", value: 624, color: "#ef4444" },
-    { name: "Pending", value: 376, color: "#f59e0b" },
-  ];
-
-  const recentActivity = [
-    {
-      user: "Sarah Johnson",
-      action: "completed project",
-      project: "Website Redesign",
-      time: "2 hours ago",
-    },
-    {
-      user: "Michael Chen",
-      action: "added 5 tasks to",
-      project: "Mobile App",
-      time: "4 hours ago",
-    },
-    {
-      user: "Emily Davis",
-      action: "updated design for",
-      project: "Brand Identity",
-      time: "6 hours ago",
-    },
-    {
-      user: "Lisa Anderson",
-      action: "created new project",
-      project: "Q4 Campaign",
-      time: "1 day ago",
-    },
-  ];
+// ─── Stat Card Component ──────────────────────────────────────────────────────
+function StatCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  trend,
+  trendValue,
+  color = "indigo",
+}: {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: any;
+  trend?: "up" | "down";
+  trendValue?: string;
+  color?: string;
+}) {
+  const colors = {
+    indigo: "bg-indigo-100 text-indigo-600",
+    green: "bg-green-100 text-green-600",
+    blue: "bg-blue-100 text-blue-600",
+    amber: "bg-amber-100 text-amber-600",
+    violet: "bg-violet-100 text-violet-600",
+  };
 
   return (
-    <div className="space-y-6">
-      {/* #212121 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, idx) => (
-          <div
-            key={idx}
-            className="rounded-lg shadow p-6 bg-[#171717] border border-[#2B2B2B]"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[#999999]">{stat.title}</p>
-                <p className="text-2xl font-bold mt-2 text-white">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-green-600 mt-2">{stat.change}</p>
-              </div>
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-[#171717] border border-[#2B2B2B] text-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Project & Task Trends</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={projectData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="projects"
-                stroke="#3b82f6"
-                strokeWidth={2}
-              />
-              <Line
-                type="monotone"
-                dataKey="tasks"
-                stroke="#10b981"
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+    <Card className="bg-[#171717] border border-[#2B2B2B] gap-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-[#999999]">
+          {title}
+        </CardTitle>
+        <div
+          className={cn(
+            "w-10 h-10 rounded-xl flex items-center justify-center",
+            colors[color as keyof typeof colors],
+          )}
+        >
+          <Icon size={20} />
         </div>
-
-        <div className="bg-[#171717] border border-[#2B2B2B] rounded-lg shadow p-6 text-white group ">
-          <h3 className="text-lg font-semibold mb-4">
-            User Status Distribution
-          </h3>
-          <ResponsiveContainer
-            width="100%"
-            height={300}
-            className="focus-visible:outline-none!"
-          >
-            <PieChart>
-              <Pie
-                data={userStatusData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} ${(percent ?? 1 * 100).toFixed(0)}%`
-                }
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {userStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="bg-[#171717] border border-[#2B2B2B] rounded-lg shadow p-6 text-white">
-        <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
-        <div className="space-y-4">
-          {recentActivity.map((activity, idx) => (
-            <div
-              key={idx}
-              className="flex items-start space-x-3 pb-4 border-b border-[#2B2B2B] last:border-b-0"
+      </CardHeader>
+      <CardContent>
+        <div className="text-3xl font-bold text-white">{value}</div>
+        {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+        {trend && trendValue && (
+          <div className="flex items-center gap-1 mt-2">
+            {trend === "up" ? (
+              <ArrowUpRight size={14} className="text-green-600" />
+            ) : (
+              <ArrowDownRight size={14} className="text-red-600" />
+            )}
+            <span
+              className={cn(
+                "text-xs font-medium",
+                trend === "up" ? "text-green-600" : "text-red-600",
+              )}
             >
-              <div className="bg-blue-100 rounded-full p-2">
-                <Activity className="w-4 h-4 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm">
-                  <span className="font-semibold">{activity.user}</span>{" "}
-                  {activity.action}{" "}
-                  <span className="font-semibold">{activity.project}</span>
-                </p>
-                <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-              </div>
-            </div>
-          ))}
+              {trendValue}
+            </span>
+            <span className="text-xs text-gray-400">vs last month</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Main Dashboard ───────────────────────────────────────────────────────────
+export default function SuperAdminDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [charts, setCharts] = useState<ChartData | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const response = await getDashboardData();
+      // console.log(response, "datadatadata")
+      setStats(response?.data?.stats);
+      setCharts(response?.data?.charts);
+      setLastRefresh(new Date());
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !stats || !charts) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <RefreshCw className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 ">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Last updated: {lastRefresh.toLocaleTimeString()}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={fetchDashboardData}>
+            <RefreshCw size={14} className="mr-1.5" />
+            Refresh
+          </Button>
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
+            <Activity size={12} className="mr-1" />
+            System Healthy
+          </Badge>
         </div>
       </div>
+
+      {/* Top Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Organizations"
+          value={stats.organizations.total.toLocaleString()}
+          subtitle={`${stats.organizations.active} active`}
+          icon={Building2}
+          trend={stats.organizations.growth > 0 ? "up" : "down"}
+          trendValue={`${Math.abs(stats.organizations.growth)}%`}
+          color="indigo"
+        />
+        <StatCard
+          title="Total Users"
+          value={stats.users.total.toLocaleString()}
+          subtitle={`${stats.users.active} active today`}
+          icon={Users}
+          trend={stats.users.growth > 0 ? "up" : "down"}
+          trendValue={`${Math.abs(stats.users.growth)}%`}
+          color="blue"
+        />
+        <StatCard
+          title="MRR"
+          value={`$${(stats.revenue.mrr / 1000).toFixed(1)}k`}
+          subtitle={`ARR: $${(stats.revenue.arr / 1000).toFixed(0)}k`}
+          icon={DollarSign}
+          trend={stats.revenue.growth > 0 ? "up" : "down"}
+          trendValue={`${Math.abs(stats.revenue.growth)}%`}
+          color="green"
+        />
+        <StatCard
+          title="Storage Used"
+          value={`${stats.storage.percentage}%`}
+          subtitle={`${stats.storage.used} GB / ${stats.storage.total} GB`}
+          icon={Database}
+          color="amber"
+        />
+      </div>
+
+      {/* Charts Section */}
+      <Tabs defaultValue="growth" className="space-y-4">
+        <TabsList className="bg-white border">
+          <TabsTrigger
+            value="growth"
+            className=" data-[state=active]:bg-gray-200 data-[state=active]:text-[#2B2B2B] cursor-pointer"
+          >
+            Growth Trends
+          </TabsTrigger>
+          <TabsTrigger
+            value="revenue"
+            className=" data-[state=active]:bg-gray-200 data-[state=active]:text-[#2B2B2B] cursor-pointer"
+          >
+            Revenue
+          </TabsTrigger>
+          <TabsTrigger
+            value="plans"
+            className=" data-[state=active]:bg-gray-200 data-[state=active]:text-[#2B2B2B] cursor-pointer"
+          >
+            Plan Distribution
+          </TabsTrigger>
+          <TabsTrigger
+            value="performance"
+            className=" data-[state=active]:bg-gray-200 data-[state=active]:text-[#2B2B2B] cursor-pointer"
+          >
+            Performance
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="growth" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Growth Over Time</CardTitle>
+              <CardDescription>
+                Organizations and Users growth (last 30 days)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={charts.growthChart}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="date" fontSize={12} />
+                  <YAxis fontSize={12} />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="organizations"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    name="Organizations"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="users"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    name="Users"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="revenue" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Revenue & Churn</CardTitle>
+              <CardDescription>
+                Monthly recurring revenue and churn rate
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={charts.revenueChart}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" fontSize={12} />
+                  <YAxis fontSize={12} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="revenue"
+                    fill="#10b981"
+                    name="Revenue ($)"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="churn"
+                    fill="#ef4444"
+                    name="Churn ($)"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="plans" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Subscription Plans</CardTitle>
+              <CardDescription>
+                Distribution of organizations by plan
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={charts.planDistribution}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) =>
+                        `${name} ${(percent * 100).toFixed(0)}%`
+                      }
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {charts.planDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">System Uptime</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-green-600">
+                  {stats.performance.uptime}%
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Last 30 days</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Avg Response Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-blue-600">
+                  {stats.performance.avgResponseTime}ms
+                </div>
+                <p className="text-xs text-gray-500 mt-2">API endpoints</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Error Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-amber-600">
+                  {stats.performance.errorRate}%
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Last 24 hours</p>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Quick Actions Grid */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Common admin tasks</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-center gap-2"
+            >
+              <Building2 size={20} />
+              <span className="text-xs">Organizations</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-center gap-2"
+            >
+              <Users size={20} />
+              <span className="text-xs">Users</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-center gap-2"
+            >
+              <DollarSign size={20} />
+              <span className="text-xs">Subscriptions</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-center gap-2"
+            >
+              <Zap size={20} />
+              <span className="text-xs">Feature Flags</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
