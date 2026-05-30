@@ -1,65 +1,32 @@
 "use server";
 
-import { fetchWithAuth } from "@/lib/fetch-config";
-import { cookies } from "next/headers";
+import {
+  ApiRequestError,
+  fetchWithAuth,
+  parseApiResponse,
+} from "@/lib/fetch-config";
+import { AdminListParams, buildAdminListSearchParams } from "@/lib/list-params";
 const endpoint = "/users";
 
-type GetUsersParams = {
-  limit?: number;
-  search?: string;
-  status?: string;
-  orderBy?: "ASC" | "DESC";
-};
-
-export async function getUsers(page: number, params: GetUsersParams) {
-  const access_token = (await cookies()).get("admin_access_token")?.value;
-
-  const queryParams = new URLSearchParams({ page: String(page) });
-
-  if (params.limit !== undefined && params.limit !== null) {
-    queryParams.set("limit", String(parseInt(String(params.limit))));
-  }
-
-  if (params.search) {
-    queryParams.set("search", String(params.search));
-  }
-
-  if (params.status) {
-    queryParams.set("status", String(params.status));
-  }
-
-  if (params.orderBy) {
-    queryParams.set("orderBy", String(params.orderBy));
-  }
+export async function getUsers(page: number, params: AdminListParams) {
+  const queryParams = buildAdminListSearchParams(page, params);
 
   try {
-    const response = await fetchWithAuth(
-      `/admin${endpoint}?${queryParams.toString()}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false as const,
-        message: data.message || "Something went wrong",
-      };
-    }
+    const response = await fetchWithAuth(`/admin${endpoint}?${queryParams.toString()}`);
+    const data = await parseApiResponse<any>(response);
 
     return {
       success: true as const,
       message: "Success",
       data,
     };
-  } catch {
+  } catch (error) {
     return {
       success: false as const,
-      message: "Failed to fetch users",
+      message:
+        error instanceof ApiRequestError
+          ? error.message
+          : "Failed to fetch users",
     };
   }
 }
@@ -73,17 +40,9 @@ export async function activateUser(id: number) {
       },
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data.message || "Something went wrong",
-      };
-    }
-
-    return { success: true, message: "Accepted Successfully", data: data };
-  } catch {
+    const data = await parseApiResponse<any>(response);
+    return { success: true, message: "Accepted Successfully", data };
+  } catch (error) {
     return { success: false, message: "Failed to Accept" };
   }
 }
@@ -94,16 +53,8 @@ export async function suspendUser(id: number) {
       method: "PATCH",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data.message || "Something went wrong",
-      };
-    }
-
-    return { success: true, message: "Success!!", data: data };
+    const data = await parseApiResponse<any>(response);
+    return { success: true, message: "Success!!", data };
   } catch {
     return { success: false, message: "Failed to Suspend" };
   }
@@ -115,16 +66,8 @@ export async function reActivateUser(id: number) {
       method: "PATCH",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data.message || "Something went wrong",
-      };
-    }
-
-    return { success: true, message: "Success!!", data: data };
+    const data = await parseApiResponse<any>(response);
+    return { success: true, message: "Success!!", data };
   } catch {
     return { success: false, message: "Failed to Suspend" };
   }
@@ -138,16 +81,7 @@ export async function getUserById(id: number) {
       },
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data.message || "Something went wrong",
-      };
-    }
-
-    console.log(data, "ni");
+    const data = await parseApiResponse<any>(response);
     return data;
   } catch {
     return { success: false, message: "Failed to Accept" };
@@ -163,16 +97,8 @@ export async function rejectUser(id: number) {
       },
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data.message || "Something went wrong",
-      };
-    }
-
-    return { success: true, message: "Rejected Successfully", data: data };
+    const data = await parseApiResponse<any>(response);
+    return { success: true, message: "Rejected Successfully", data };
   } catch {
     return { success: false, message: "Failed to Reject" };
   }
@@ -187,14 +113,7 @@ export async function deleteUser(id: number) {
       },
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data.message || "Something went wrong",
-      };
-    }
+    const data = await parseApiResponse<any>(response);
 
     return {
       success: true,

@@ -610,9 +610,7 @@ export default function OrganizationDetailPage({
                   </div>
                   <Switch
                     checked={organization?.is_active}
-                    onCheckedChange={(value) => {
-                      console.log("New value:", value);
-                    }}
+                    onCheckedChange={() => undefined}
                     className="
                                     data-[state=checked]:bg-green-500
                                     data-[state=unchecked]:bg-red-500

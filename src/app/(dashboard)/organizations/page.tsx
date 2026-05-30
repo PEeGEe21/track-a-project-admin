@@ -35,6 +35,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { Download } from "@solar-icons/react";
 import { TrashBin2 } from "@solar-icons/react";
+import { adminQueryKeys, getListState } from "@/lib/query-keys";
 
 const statuses = [
   { label: "All", value: "all" },
@@ -58,7 +59,7 @@ type Organization = {
   id: string;
 };
 
-export default function page() {
+export default function OrganizationsPage() {
   const [pageLimit, setPageLimit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -67,23 +68,23 @@ export default function page() {
   const [selectedOrgs, setSelectedOrgs] = useState<string[]>([]);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: [
-      "organizations",
-      currentPage,
-      pageLimit,
-      debouncedSearchQuery,
-      status,
-      orderBy,
-    ],
+  const listState = getListState(currentPage, {
+    limit: pageLimit,
+    search: debouncedSearchQuery || undefined,
+    status: status !== "all" ? status : undefined,
+    orderBy,
+  });
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: adminQueryKeys.organizations.list(listState),
     queryFn: () =>
       getOrganizations(currentPage, {
         limit: pageLimit,
         search: debouncedSearchQuery || undefined,
         status: status !== "all" ? status : undefined,
-        orderBy: orderBy || undefined,
+        orderBy,
       }),
-    placeholderData: (previousData) => previousData, // Keep old data while fetching
+    placeholderData: (previousData) => previousData,
   });
 
   const handlePageChange = (newPage: number) => {
@@ -123,21 +124,16 @@ export default function page() {
 
   const handleBulkDelete = () => {
     if (selectedOrgs.length === 0) return;
-    console.log("Deleting organizations:", selectedOrgs);
     showToast("success", `Deleting ${selectedOrgs.length} organizations`);
   };
 
   const handleBulkExport = () => {
     if (selectedOrgs.length === 0) return;
-    console.log("Exporting organizations:", selectedOrgs);
     showToast("success", `Exporting ${selectedOrgs.length} organizations`);
   };
 
   const isAllSelected =
     organizations.length > 0 && selectedOrgs.length === organizations.length;
-  const isSomeSelected =
-    selectedOrgs.length > 0 && selectedOrgs.length < organizations.length;
-
   return (
     <>
       <div className="space-y-6">

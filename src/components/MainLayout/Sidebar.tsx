@@ -15,8 +15,7 @@ import { useSideBarCollapse } from "@/lib/stores/useSideBarCollapse";
 import { useSideBarDropdownMenu } from "@/lib/stores/useSideBarDropdownMenu";
 import { BoldLogout } from "@/lib/icons/iconJSX";
 import clsx from "clsx";
-import { start } from "repl";
-import { startsWith } from "zod";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -210,7 +209,7 @@ export default function Sidebar() {
         </nav>
 
         <div className="p-4 border-t border-[#2B2B2B]">
-          <button
+          <LogoutButton
             className={clsx(
               "w-full flex items-center space-x-3 py-3 px-2 rounded-lg hover:bg-[#212121] text-white cursor-pointer",
               isCollapsed ? "justify-center" : ""
@@ -218,7 +217,7 @@ export default function Sidebar() {
           >
             <BoldLogout className="w-5 h-5" color="#fff" />
             {!isCollapsed && <span>Logout</span>}
-          </button>
+          </LogoutButton>
         </div>
       </aside>
     </>

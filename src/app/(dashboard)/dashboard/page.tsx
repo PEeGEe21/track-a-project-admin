@@ -43,6 +43,8 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { getDashboardData } from "@/app/actions/dashboard";
+import { logoutUser } from "@/app/actions/auth";
+import { useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface DashboardStats {
@@ -132,7 +134,9 @@ export default function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [charts, setCharts] = useState<ChartData | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const router = useRouter();
 
   useEffect(() => {
     fetchDashboardData();
@@ -140,23 +144,60 @@ export default function SuperAdminDashboard() {
 
   const fetchDashboardData = async () => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       const response = await getDashboardData();
-      // console.log(response, "datadatadata")
-      setStats(response?.data?.stats);
-      setCharts(response?.data?.charts);
+      if (!response.success) {
+        if (response.message === "Unauthorized") {
+          await logoutUser();
+          router.replace("/auth/login");
+          return;
+        }
+
+        setStats(null);
+        setCharts(null);
+        setErrorMessage(response.message || "Failed to fetch dashboard data");
+        return;
+      }
+
+      setStats((response?.data?.stats as DashboardStats | undefined) ?? null);
+      setCharts((response?.data?.charts as ChartData | undefined) ?? null);
       setLastRefresh(new Date());
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
+      setStats(null);
+      setCharts(null);
+      setErrorMessage("Failed to fetch dashboard data");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !stats || !charts) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <RefreshCw className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (errorMessage || !stats || !charts) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md bg-[#171717] border border-[#2B2B2B]">
+          <CardHeader>
+            <CardTitle className="text-white">Dashboard unavailable</CardTitle>
+            <CardDescription>
+              {errorMessage || "We couldn't load the admin dashboard right now."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={fetchDashboardData}>
+              <RefreshCw size={14} className="mr-1.5" />
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -341,7 +382,7 @@ export default function SuperAdminDashboard() {
                       cy="50%"
                       labelLine={false}
                       label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
+                        `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
                       }
                       outerRadius={100}
                       fill="#8884d8"

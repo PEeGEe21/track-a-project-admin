@@ -2,11 +2,17 @@
   "name": "tracker-admin",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.11.1 <21",
+    "npm": ">=10"
+  },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit --incremental false",
+    "test:smoke": "npm run typecheck"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

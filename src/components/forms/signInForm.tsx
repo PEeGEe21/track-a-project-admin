@@ -32,7 +32,7 @@ const SubmitButton: React.FC<{ disabled: boolean; isSubmitting: boolean }> = ({
 };
 
 const SignInForm = () => {
-  const { setUser, user } = useUserStore();
+  const { setUser } = useUserStore();
   const [message, setMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<boolean | null>(null);
   const router = useRouter();
@@ -70,11 +70,9 @@ const SignInForm = () => {
       });
       setStatus(false);
     } else {
-      console.log(res, "res")
       if (res.status) {
         if (res.data) {
           setUser(res?.data);
-          console.log(user, "user login")
           setStatus(res.status ?? true);
           router.push("/dashboard");
           reset();

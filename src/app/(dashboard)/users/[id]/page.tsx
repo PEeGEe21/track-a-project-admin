@@ -145,6 +145,9 @@ export default function UserDetailPage({
     queryKey: ["user-activity", id],
     queryFn: () => getUserActivity(id),
   });
+  const roleLabel = user?.role
+    ? ROLES[user.role as keyof typeof ROLES]
+    : "N/A";
 
   if (isLoading) {
     return (
@@ -154,7 +157,6 @@ export default function UserDetailPage({
     );
   }
 
-  console.log(user, "user");
   // Calculate stats
   const activeProjects = projects.filter((p) => p.status === "active").length;
   const completedProjects = projects.filter(
@@ -215,7 +217,7 @@ export default function UserDetailPage({
               <div>
                 <p className="text-sm text-gray-400">Role</p>
                 <p className="text-2xl font-bold text-white mt-1">
-                  {user?.role ? ROLES[user.role] : "N/A"}
+                  {roleLabel}
                 </p>
               </div>
               <Award className="h-8 w-8 bg-purple-500 text-white p-1.5 rounded" />
@@ -307,7 +309,7 @@ export default function UserDetailPage({
                   <div>
                     <Label className="text-gray-400">Role</Label>
                     <p className="text-white mt-1">
-                      {user?.role ? ROLES[user.role] : "N/A"}
+                      {roleLabel}
                     </p>
                   </div>
                   <div>

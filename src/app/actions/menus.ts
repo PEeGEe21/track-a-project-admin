@@ -1,61 +1,24 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { CreateMenuDto, UpdateMenuDto, ReorderMenuDto } from "@/types/menu";
-import { fetchWithAuth } from "@/lib/fetch-config";
-// const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import {
+  ApiRequestError,
+  fetchWithAuth,
+  parseApiResponse,
+} from "@/lib/fetch-config";
 const endpoint = "/admin/menus";
 
-// export async function getMenus() {
-//   //   const access_token = (await cookies()).get("access_token")?.value;
-
-//   try {
-//     const response = await fetch(`${endpoint}/organization`, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${access_token}`,
-//       },
-//     });
-
-//     const data = await response.json();
-
-//     if (!response.ok) {
-//       return {
-//         success: false,
-//         message: data.message || "Something went wrong",
-//       };
-//     }
-
-//     return { success: true, message: "Success", data: data };
-//   } catch {
-//     return { success: false, message: "Failed to Accept" };
-//   }
-// }
-
 export async function getGlobalMenus() {
-  const access_token = (await cookies()).get("admin_access_token")?.value;
-
   try {
-    const response = await fetchWithAuth(`${endpoint}/global`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data.message || "Something went wrong",
-      };
-    }
-
-    return { success: true, message: "Success", data: data };
-  } catch {
-    return { success: false, message: "Failed to Accept" };
+    const response = await fetchWithAuth(`${endpoint}/global`);
+    const data = await parseApiResponse<any>(response);
+    return { success: true, message: "Success", data };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error instanceof ApiRequestError ? error.message : "Failed to Accept",
+    };
   }
 }
 
@@ -67,26 +30,13 @@ async function fetchData(url: string, options: RequestInit = {}) {
       ...options.headers,
     },
   });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || "Request failed");
-  }
-
-  return response.json();
+  return parseApiResponse<any>(response);
 }
 
-// Get all global menus (Super Admin)
-// export async function getGlobalMenus() {
-//   return fetchWithAuth("/menus/global");
-// }
-
-// Get organization menus
 export async function getMenus() {
   return fetchData(`${endpoint}`);
 }
 
-// Create global menu
 export async function createGlobalMenu(menu: CreateMenuDto) {
   return fetchData(`${endpoint}/menus/global`, {
     method: "POST",
@@ -94,7 +44,6 @@ export async function createGlobalMenu(menu: CreateMenuDto) {
   });
 }
 
-// Update global menu
 export async function updateGlobalMenu(id: string, updates: UpdateMenuDto) {
   return fetchData(`${endpoint}/global/${id}`, {
     method: "PUT",
@@ -102,14 +51,12 @@ export async function updateGlobalMenu(id: string, updates: UpdateMenuDto) {
   });
 }
 
-// Delete global menu
 export async function deleteGlobalMenu(id: string) {
   return fetchData(`${endpoint}/global/${id}`, {
     method: "DELETE",
   });
 }
 
-// Reorder menus (batch update)
 export async function reorderMenus(items: ReorderMenuDto[]) {
   return fetchData(`${endpoint}/global/reorder`, {
     method: "POST",

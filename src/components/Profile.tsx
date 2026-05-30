@@ -38,14 +38,10 @@ const Profile = () => {
   const handleLogout = async () => {
     setLoading(true);
     setIsDropdownOpen(false);
-    const response = await logoutUser();
-    if (response?.success) {
-      showToast("success", `Successfully logged out`);
-      router.push("/");
-      logout();
-    } else {
-      showToast("error", "Failed to log out");
-    }
+    await logoutUser();
+    showToast("success", "Successfully logged out");
+    logout();
+    router.replace("/auth/login");
     setLoading(false);
   };
 

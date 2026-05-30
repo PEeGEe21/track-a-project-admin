@@ -8,14 +8,19 @@ import {
   deleteGlobalMenu,
   reorderMenus,
 } from "@/app/actions/menus";
+import { adminQueryKeys } from "@/lib/query-keys";
+import { invalidateAdminQueries } from "@/lib/query-utils";
+
+function ensureMenuList(value: unknown): Menu[] {
+  return Array.isArray(value) ? (value as Menu[]) : [];
+}
 
 export function useMenus() {
   return useQuery({
-    queryKey: ["menus"],
+    queryKey: adminQueryKeys.menus.scoped(),
     queryFn: async () => {
-      const { data } = await getMenus();
-      console.log(data, "datadatadata");
-      return data as Menu[];
+      const result = await getMenus();
+      return ensureMenuList(result?.data);
     },
   });
 }
@@ -23,12 +28,13 @@ export function useMenus() {
 // For super admins
 export function useGlobalMenus() {
   return useQuery({
-    queryKey: ["global-menus"],
+    queryKey: adminQueryKeys.menus.global(),
     queryFn: async () => {
-      const { data } = await getGlobalMenus();
-
-      console.log(data, 'data')
-      return data as Menu[];
+      const result = await getGlobalMenus();
+      if (!result.success) {
+        throw new Error(result.message || "Failed to fetch global menus");
+      }
+      return ensureMenuList(result.data);
     },
   });
 }
@@ -42,7 +48,7 @@ export function useCreateGlobalMenu() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["global-menus"] });
+      return invalidateAdminQueries(queryClient, [adminQueryKeys.menus.global()]);
     },
   });
 }
@@ -62,7 +68,7 @@ export function useUpdateGlobalMenu() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["global-menus"] });
+      return invalidateAdminQueries(queryClient, [adminQueryKeys.menus.global()]);
     },
   });
 }
@@ -75,7 +81,7 @@ export function useDeleteGlobalMenu() {
       await deleteGlobalMenu(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["global-menus"] });
+      return invalidateAdminQueries(queryClient, [adminQueryKeys.menus.global()]);
     },
   });
 }
@@ -88,7 +94,7 @@ export function useReorderMenus() {
       await reorderMenus(items);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["global-menus"] });
+      return invalidateAdminQueries(queryClient, [adminQueryKeys.menus.global()]);
     },
   });
 }

@@ -1,11 +1,15 @@
 "use server";
 
-import { fetchPublic, fetchWithAuth } from "@/lib/fetch-config";
+import {
+  ApiRequestError,
+  fetchPublic,
+  fetchWithAuth,
+  parseApiResponse,
+} from "@/lib/fetch-config";
 import { signInSchema } from "@/lib/schemas";
 import { signInSchemaType } from "@/types/schema";
 import { UserProps } from "@/types/user";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 interface LoginProps extends PrevStateProps<signInSchemaType> {
   redirectUrl?: string;
@@ -14,11 +18,12 @@ interface LoginProps extends PrevStateProps<signInSchemaType> {
 
 export async function login(
   prevState: LoginProps | undefined,
-  formData: FormData
+  formData: FormData,
 ): Promise<LoginProps> {
   const cookieStore = await cookies();
   const rawData = Object.fromEntries(formData.entries());
   const validatedFields = signInSchema.safeParse(rawData);
+  const isProduction = process.env.NODE_ENV === "production";
 
   // For server side validation
   if (!validatedFields.success) {
@@ -32,30 +37,24 @@ export async function login(
 
   const dataToSubmit = validatedFields.data;
 
-  // console.log(dataToSubmit)
   try {
     const response = await fetchPublic("/auth/login-admin", {
       method: "POST",
       body: JSON.stringify(dataToSubmit),
     });
-    const data = await response.json();
-
-    if (!response?.ok) {
-      console.log("fine");
-      return {
-        ...prevState,
-        message: data?.message,
-        data: null,
-        inputs: rawData as signInSchemaType,
-        status: false,
-      };
-    }
+    const data = await parseApiResponse<{
+      accessToken: string;
+      refreshToken: string;
+      user: UserProps;
+      message?: string;
+    }>(response);
 
     cookieStore.set({
       name: "admin_access_token",
       httpOnly: true,
       value: data?.accessToken,
-      sameSite: "lax",
+      sameSite: "strict",
+      secure: isProduction,
       maxAge: 60 * 15,
       path: "/",
     });
@@ -65,8 +64,9 @@ export async function login(
       httpOnly: true,
       value: data?.refreshToken,
       sameSite: "strict",
-      // path: "/api/auth/refresh",
+      secure: isProduction,
       maxAge: 60 * 60 * 24 * 7,
+      path: "/",
     });
 
     return {
@@ -77,10 +77,13 @@ export async function login(
       status: true,
     };
   } catch (error) {
-    console.log(error, "here");
+    const message =
+      error instanceof ApiRequestError
+        ? error.message
+        : "Failed to Sign in. Please Try again";
     return {
       ...prevState,
-      message: "Failed to Sign in. Please Try again",
+      message,
       status: false,
       data: null,
       inputs: rawData as signInSchemaType,
@@ -90,11 +93,12 @@ export async function login(
 
 export async function impersonateUser(
   prevState: LoginProps | undefined,
-  formData: FormData
+  formData: FormData,
 ): Promise<LoginProps> {
   const cookieStore = await cookies();
   const rawData = Object.fromEntries(formData.entries());
   const validatedFields = signInSchema.safeParse(rawData);
+  const isProduction = process.env.NODE_ENV === "production";
 
   // For server side validation
   if (!validatedFields.success) {
@@ -108,30 +112,24 @@ export async function impersonateUser(
 
   const dataToSubmit = validatedFields.data;
 
-  // console.log(dataToSubmit)
   try {
     const response = await fetchPublic("/auth/login-admin", {
       method: "POST",
       body: JSON.stringify(dataToSubmit),
     });
-    const data = await response.json();
-
-    if (!response?.ok) {
-      console.log("fine");
-      return {
-        ...prevState,
-        message: data?.message,
-        data: null,
-        inputs: rawData as signInSchemaType,
-        status: false,
-      };
-    }
+    const data = await parseApiResponse<{
+      accessToken: string;
+      refreshToken: string;
+      user: UserProps;
+      message?: string;
+    }>(response);
 
     cookieStore.set({
       name: "admin_access_token",
       httpOnly: true,
       value: data?.accessToken,
-      sameSite: "lax",
+      sameSite: "strict",
+      secure: isProduction,
       maxAge: 60 * 15,
       path: "/",
     });
@@ -141,8 +139,9 @@ export async function impersonateUser(
       httpOnly: true,
       value: data?.refreshToken,
       sameSite: "strict",
-      // path: "/api/auth/refresh",
+      secure: isProduction,
       maxAge: 60 * 60 * 24 * 7,
+      path: "/",
     });
 
     return {
@@ -153,10 +152,13 @@ export async function impersonateUser(
       status: true,
     };
   } catch (error) {
-    console.log(error, "here");
+    const message =
+      error instanceof ApiRequestError
+        ? error.message
+        : "Failed to Sign in. Please Try again";
     return {
       ...prevState,
-      message: "Failed to Sign in. Please Try again",
+      message,
       status: false,
       data: null,
       inputs: rawData as signInSchemaType,
@@ -165,33 +167,25 @@ export async function impersonateUser(
 }
 
 export async function logoutUser() {
-  const cookiesFunc = await cookies();
+  const cookieStore = await cookies();
   try {
-    const refresh_token = (await cookies()).get("admin_refresh_token")?.value;
+    const refreshToken = cookieStore.get("admin_refresh_token")?.value;
 
-    const response = await fetchWithAuth("/auth/logout", {
-      method: "POST",
-      body: JSON.stringify({ refreshToken: refresh_token }),
-    });
-
-    if (!response?.ok) {
-      return {
-        message: "Something went wrong.",
-        success: false,
-      };
+    if (refreshToken) {
+      await fetchWithAuth("/auth/logout", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken }),
+      });
     }
-
-    // Clear all auth-related cookies
-    cookiesFunc.delete("admin_access_token");
-    cookiesFunc.delete("admin_refresh_token");
-
-    return { success: true, message: "Logged out successfully" };
   } catch {
-    return {
-      message: "Something went wrong.",
-      success: false,
-    };
+    // We still clear local auth cookies even if the backend logout request fails.
   } finally {
-    redirect(`/auth/login`);
+    cookieStore.delete("admin_access_token");
+    cookieStore.delete("admin_refresh_token");
   }
+
+  return {
+    success: true,
+    message: "Logged out successfully",
+  };
 }
