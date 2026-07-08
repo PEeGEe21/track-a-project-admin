@@ -4,8 +4,8 @@ import { Providers } from "./providers";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Tracker Admin",
-  description: "Administrative console for the Trackr platform",
+  title: "TailPoint Admin",
+  description: "Administrative console for the TailPoint platform",
 };
 
 export default function RootLayout({
