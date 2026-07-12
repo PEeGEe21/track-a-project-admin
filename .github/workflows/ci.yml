@@ -1,0 +1,27 @@
+name: CI
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches: [main, dev]
+concurrency:
+  group: admin-ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Lint (advisory until the existing backlog is cleared)
+        continue-on-error: true
+        run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
