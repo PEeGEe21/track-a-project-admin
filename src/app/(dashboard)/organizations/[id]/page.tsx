@@ -52,6 +52,10 @@ import {
   getOrganization,
   getOrganizationMenus,
   getOrganizationTeam,
+  getOrganizationEntitlements,
+  updateOrganizationEntitlement,
+  clearOrganizationEntitlement,
+  type OrganizationEntitlement,
 } from "@/app/actions/organizations";
 import { ROLES } from "@/lib/constants";
 import { UserProps, UserRole } from "@/types/user";
@@ -130,6 +134,34 @@ export default function OrganizationDetailPage({
     queryKey: ["organization-menus", id],
     queryFn: () => getOrganizationMenus(id),
     enabled: !!id,
+  });
+
+  const {
+    data: entitlements = [],
+    isLoading: entitlementsLoading,
+    isError: entitlementsError,
+  } = useQuery({
+    queryKey: ["organization-entitlements", id],
+    queryFn: () => getOrganizationEntitlements(id),
+    enabled: !!id,
+  });
+
+  const entitlementMutation = useMutation({
+    mutationFn: ({
+      capability,
+      override,
+    }: {
+      capability: string;
+      override: boolean | null;
+    }) =>
+      override === null
+        ? clearOrganizationEntitlement(id, capability)
+        : updateOrganizationEntitlement(id, capability, override),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["organization-entitlements", id], data);
+      showToast("success", "Entitlement override updated");
+    },
+    onError: (error: Error) => showToast("error", error.message),
   });
 
   if (isLoading) {
@@ -282,6 +314,12 @@ export default function OrganizationDetailPage({
             className="text-white data-[state=active]:text-[#2B2B2B]"
           >
             Menus
+          </TabsTrigger>
+          <TabsTrigger
+            value="entitlements"
+            className="text-white data-[state=active]:text-[#2B2B2B]"
+          >
+            Entitlements
           </TabsTrigger>
           <TabsTrigger
             value="settings"
@@ -587,6 +625,81 @@ export default function OrganizationDetailPage({
                   )}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="entitlements" className="space-y-4">
+          <Card className="bg-[#171717] border-[#2B2B2B]">
+            <CardHeader>
+              <CardTitle className="text-white">Organization Entitlements</CardTitle>
+              <p className="text-sm text-gray-400">
+                Rollout overrides are enforced by the backend and recorded in the audit log.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {entitlementsLoading ? (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Loader className="h-4 w-4 animate-spin" /> Loading entitlements
+                </div>
+              ) : entitlementsError ? (
+                <p className="text-sm text-red-400">Unable to load entitlements.</p>
+              ) : entitlements.length === 0 ? (
+                <p className="text-sm text-gray-400">No capabilities are registered.</p>
+              ) : (
+                <div className="space-y-3">
+                  {entitlements.map((entitlement: OrganizationEntitlement) => (
+                    <div
+                      key={entitlement.key}
+                      className="flex items-center justify-between gap-6 rounded-lg border border-[#2B2B2B] bg-[#1F1F1F] p-4"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-white">{entitlement.label}</p>
+                          <Badge
+                            variant="outline"
+                            className={entitlement.enabled
+                              ? "border-green-500 text-green-400"
+                              : "border-gray-600 text-gray-400"}
+                          >
+                            {entitlement.enabled ? "Enabled" : "Disabled"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-400">{entitlement.description}</p>
+                        <p className="text-xs text-gray-500">
+                          Key: {entitlement.key} · Minimum plan: {entitlement.minimumTier} · Reason: {entitlement.reason}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {([
+                          [null, "Inherit"],
+                          [true, "On"],
+                          [false, "Off"],
+                        ] as const).map(([override, label]) => (
+                          <Button
+                            key={label}
+                            size="sm"
+                            variant={entitlement.override === override ? "default" : "outline"}
+                            disabled={entitlementMutation.isPending}
+                            onClick={() =>
+                              entitlementMutation.mutate({
+                                capability: entitlement.key,
+                                override,
+                              })
+                            }
+                            className={entitlement.override === override
+                              ? "bg-purple-600 hover:bg-purple-700"
+                              : "border-[#3A3A3A] bg-transparent text-gray-300"}
+                          >
+                            {label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

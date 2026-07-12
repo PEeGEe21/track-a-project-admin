@@ -8,6 +8,48 @@ import {
 import { AdminListParams, buildAdminListSearchParams } from "@/lib/list-params";
 const endpoint = "/organizations";
 
+export type OrganizationEntitlement = {
+  key: string;
+  label: string;
+  description: string;
+  minimumTier: string;
+  defaultEnabled: boolean;
+  organizationTier: string;
+  override: boolean | null;
+  planEligible: boolean;
+  permissionGranted: boolean;
+  enabled: boolean;
+  reason: string;
+};
+
+export async function getOrganizationEntitlements(id: string) {
+  const response = await fetchWithAuth(`/admin/organizations/${id}/entitlements`);
+  return parseApiResponse<OrganizationEntitlement[]>(response);
+}
+
+export async function updateOrganizationEntitlement(
+  id: string,
+  capability: string,
+  enabled: boolean,
+) {
+  const response = await fetchWithAuth(`/admin/organizations/${id}/entitlements`, {
+    method: "PATCH",
+    body: JSON.stringify({ capability, enabled }),
+  });
+  return parseApiResponse<OrganizationEntitlement[]>(response);
+}
+
+export async function clearOrganizationEntitlement(
+  id: string,
+  capability: string,
+) {
+  const response = await fetchWithAuth(
+    `/admin/organizations/${id}/entitlements/${encodeURIComponent(capability)}`,
+    { method: "DELETE" },
+  );
+  return parseApiResponse<OrganizationEntitlement[]>(response);
+}
+
 export async function getOrganizations(
   page: number,
   params: AdminListParams,
