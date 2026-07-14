@@ -425,6 +425,9 @@ export default function OrganizationDetailPage({
               </div>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+                Pilot features remain disabled by catalog default. Enable them only for approved organizations, validate the member experience, then return the override to Inherit or Off when the pilot ends.
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow className="bg-[#1F1F1F] hover:bg-[#1F1F1F] border-b border-[#2B2B2B]">
@@ -657,6 +660,11 @@ export default function OrganizationDetailPage({
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-white">{entitlement.label}</p>
+                          {entitlement.key === "personal_productivity_hub" ? (
+                            <Badge className="border-amber-500/50 bg-amber-500/10 text-amber-300" variant="outline">
+                              Pilot
+                            </Badge>
+                          ) : null}
                           <Badge
                             variant="outline"
                             className={entitlement.enabled
@@ -692,7 +700,9 @@ export default function OrganizationDetailPage({
                               ? "bg-purple-600 hover:bg-purple-700"
                               : "border-[#3A3A3A] bg-transparent text-gray-300"}
                           >
-                            {label}
+                            {entitlement.key === "personal_productivity_hub" && override === true
+                              ? "Enable pilot"
+                              : label}
                           </Button>
                         ))}
                       </div>
