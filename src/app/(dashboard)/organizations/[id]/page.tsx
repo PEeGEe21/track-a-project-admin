@@ -660,7 +660,7 @@ export default function OrganizationDetailPage({
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-white">{entitlement.label}</p>
-                          {["personal_productivity_hub", "recurring_tasks", "structured_project_updates"].includes(entitlement.key) ? (
+                          {["personal_productivity_hub", "recurring_tasks", "structured_project_updates", "decision_register"].includes(entitlement.key) ? (
                             <Badge className="border-amber-500/50 bg-amber-500/10 text-amber-300" variant="outline">
                               Pilot
                             </Badge>
@@ -700,7 +700,7 @@ export default function OrganizationDetailPage({
                               ? "bg-purple-600 hover:bg-purple-700"
                               : "border-[#3A3A3A] bg-transparent text-gray-300"}
                           >
-                            {["personal_productivity_hub", "recurring_tasks", "structured_project_updates"].includes(entitlement.key) && override === true
+                            {["personal_productivity_hub", "recurring_tasks", "structured_project_updates", "decision_register"].includes(entitlement.key) && override === true
                               ? "Enable pilot"
                               : label}
                           </Button>
