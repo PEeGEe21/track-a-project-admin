@@ -180,7 +180,7 @@ export default function OrganizationDetailPage({
   ];
 
   const currentTier = subscriptionTiers.find(
-    (t) => t.value === organization?.subscription_tier
+    (t) => t.value === organization?.subscription_tier,
   );
 
   return (
@@ -196,7 +196,7 @@ export default function OrganizationDetailPage({
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          
+
           <div>
             <h1 className="text-2xl font-bold text-white">
               {organization?.name}
@@ -353,7 +353,7 @@ export default function OrganizationDetailPage({
                     {organization?.created_at &&
                       format(
                         new Date(organization?.created_at),
-                        "MMM dd, yyyy"
+                        "MMM dd, yyyy",
                       )}
                   </p>
                 </div>
@@ -363,7 +363,7 @@ export default function OrganizationDetailPage({
                     {organization?.updated_at &&
                       format(
                         new Date(organization?.updated_at),
-                        "MMM dd, yyyy"
+                        "MMM dd, yyyy",
                       )}
                   </p>
                 </div>
@@ -426,7 +426,9 @@ export default function OrganizationDetailPage({
             </CardHeader>
             <CardContent>
               <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
-                Pilot features remain disabled by catalog default. Enable them only for approved organizations, validate the member experience, then return the override to Inherit or Off when the pilot ends.
+                Pilot features remain disabled by catalog default. Enable them
+                only for approved organizations, validate the member experience,
+                then return the override to Inherit or Off when the pilot ends.
               </div>
               <Table>
                 <TableHeader>
@@ -479,7 +481,7 @@ export default function OrganizationDetailPage({
                           {member?.created_at
                             ? format(
                                 new Date(member?.created_at),
-                                "MMM dd, yyyy"
+                                "MMM dd, yyyy",
                               )
                             : "-"}
                         </TableCell>
@@ -636,20 +638,28 @@ export default function OrganizationDetailPage({
         <TabsContent value="entitlements" className="space-y-4">
           <Card className="bg-[#171717] border-[#2B2B2B]">
             <CardHeader>
-              <CardTitle className="text-white">Organization Entitlements</CardTitle>
+              <CardTitle className="text-white">
+                Organization Entitlements
+              </CardTitle>
               <p className="text-sm text-gray-400">
-                Rollout overrides are enforced by the backend and recorded in the audit log.
+                Rollout overrides are enforced by the backend and recorded in
+                the audit log.
               </p>
             </CardHeader>
             <CardContent>
               {entitlementsLoading ? (
                 <div className="flex items-center gap-2 text-gray-400">
-                  <Loader className="h-4 w-4 animate-spin" /> Loading entitlements
+                  <Loader className="h-4 w-4 animate-spin" /> Loading
+                  entitlements
                 </div>
               ) : entitlementsError ? (
-                <p className="text-sm text-red-400">Unable to load entitlements.</p>
+                <p className="text-sm text-red-400">
+                  Unable to load entitlements.
+                </p>
               ) : entitlements.length === 0 ? (
-                <p className="text-sm text-gray-400">No capabilities are registered.</p>
+                <p className="text-sm text-gray-400">
+                  No capabilities are registered.
+                </p>
               ) : (
                 <div className="space-y-3">
                   {entitlements.map((entitlement: OrganizationEntitlement) => (
@@ -659,36 +669,65 @@ export default function OrganizationDetailPage({
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-white">{entitlement.label}</p>
-                          {["personal_productivity_hub", "recurring_tasks", "structured_project_updates", "decision_register", "ai_assistance", "custom_fields", "custom_workflows", "milestones"].includes(entitlement.key) ? (
-                            <Badge className="border-amber-500/50 bg-amber-500/10 text-amber-300" variant="outline">
+                          <p className="font-medium text-white">
+                            {entitlement.label}
+                          </p>
+                          {[
+                            "personal_productivity_hub",
+                            "recurring_tasks",
+                            "structured_project_updates",
+                            "decision_register",
+                            "ai_assistance",
+                            "custom_fields",
+                            "custom_workflows",
+                            "milestones",
+                            "request_forms",
+                            "reusable_templates",
+                            "basic_approvals",
+                          ].includes(entitlement.key) ? (
+                            <Badge
+                              className="border-amber-500/50 bg-amber-500/10 text-amber-300"
+                              variant="outline"
+                            >
                               Pilot
                             </Badge>
                           ) : null}
                           <Badge
                             variant="outline"
-                            className={entitlement.enabled
-                              ? "border-green-500 text-green-400"
-                              : "border-gray-600 text-gray-400"}
+                            className={
+                              entitlement.enabled
+                                ? "border-green-500 text-green-400"
+                                : "border-gray-600 text-gray-400"
+                            }
                           >
                             {entitlement.enabled ? "Enabled" : "Disabled"}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-400">{entitlement.description}</p>
+                        <p className="text-sm text-gray-400">
+                          {entitlement.description}
+                        </p>
                         <p className="text-xs text-gray-500">
-                          Key: {entitlement.key} · Minimum plan: {entitlement.minimumTier} · Reason: {entitlement.reason}
+                          Key: {entitlement.key} · Minimum plan:{" "}
+                          {entitlement.minimumTier} · Reason:{" "}
+                          {entitlement.reason}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        {([
-                          [null, "Inherit"],
-                          [true, "On"],
-                          [false, "Off"],
-                        ] as const).map(([override, label]) => (
+                        {(
+                          [
+                            [null, "Inherit"],
+                            [true, "On"],
+                            [false, "Off"],
+                          ] as const
+                        ).map(([override, label]) => (
                           <Button
                             key={label}
                             size="sm"
-                            variant={entitlement.override === override ? "default" : "outline"}
+                            variant={
+                              entitlement.override === override
+                                ? "default"
+                                : "outline"
+                            }
                             disabled={entitlementMutation.isPending}
                             onClick={() =>
                               entitlementMutation.mutate({
@@ -696,11 +735,25 @@ export default function OrganizationDetailPage({
                                 override,
                               })
                             }
-                            className={entitlement.override === override
-                              ? "bg-purple-600 hover:bg-purple-700"
-                              : "border-[#3A3A3A] bg-transparent text-gray-300"}
+                            className={
+                              entitlement.override === override
+                                ? "bg-purple-600 hover:bg-purple-700"
+                                : "border-[#3A3A3A] bg-transparent text-gray-300"
+                            }
                           >
-                            {["personal_productivity_hub", "recurring_tasks", "structured_project_updates", "decision_register", "ai_assistance", "custom_fields", "custom_workflows", "milestones"].includes(entitlement.key) && override === true
+                            {[
+                              "personal_productivity_hub",
+                              "recurring_tasks",
+                              "structured_project_updates",
+                              "decision_register",
+                              "ai_assistance",
+                              "custom_fields",
+                              "custom_workflows",
+                              "milestones",
+                              "request_forms",
+                              "reusable_templates",
+                              "basic_approvals",
+                            ].includes(entitlement.key) && override === true
                               ? "Enable pilot"
                               : label}
                           </Button>
