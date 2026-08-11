@@ -183,8 +183,6 @@ export default function OrganizationDetailPage({
     (t) => t.value === organization?.subscription_tier,
   );
 
-  console.log(organization, entitlements, 'organization')
-
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -740,8 +738,8 @@ export default function OrganizationDetailPage({
                             }
                             className={
                               entitlement.override === override
-                                ? "bg-purple-600 hover:bg-purple-700"
-                                : "border-[#3A3A3A] bg-transparent text-gray-300"
+                                ? "bg-purple-600 hover:bg-purple-700 cursor-pointer"
+                                : "border-[#3A3A3A] bg-transparent text-gray-300 cursor-pointer"
                             }
                           >
                             {[
