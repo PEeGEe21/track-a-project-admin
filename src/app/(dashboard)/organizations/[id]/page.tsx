@@ -183,6 +183,8 @@ export default function OrganizationDetailPage({
     (t) => t.value === organization?.subscription_tier,
   );
 
+  console.log(organization, entitlements, 'organization')
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
