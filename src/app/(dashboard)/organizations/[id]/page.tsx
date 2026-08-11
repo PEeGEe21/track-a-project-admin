@@ -684,6 +684,7 @@ export default function OrganizationDetailPage({
                             "request_forms",
                             "reusable_templates",
                             "basic_approvals",
+                            "universal_intake",
                           ].includes(entitlement.key) ? (
                             <Badge
                               className="border-amber-500/50 bg-amber-500/10 text-amber-300"
@@ -753,6 +754,7 @@ export default function OrganizationDetailPage({
                               "request_forms",
                               "reusable_templates",
                               "basic_approvals",
+                              "universal_intake",
                             ].includes(entitlement.key) && override === true
                               ? "Enable pilot"
                               : label}
