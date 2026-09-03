@@ -47,6 +47,7 @@ export const config = {
     "/subscriptions/:path*",
     "/settings/:path*",
     "/audit-review/:path*",
+    "/integration-delivery/:path*",
     "/auth/:path*",
   ],
 };

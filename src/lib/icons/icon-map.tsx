@@ -6,6 +6,7 @@ import {
   UserCog,
   Workflow,
   ShieldCheck,
+  Webhook,
 } from "lucide-react";
 import { BoldLogout, BoldUser, BoldWallet2 } from "./iconJSX";
 import { Banknote } from "@solar-icons/react";
@@ -28,4 +29,5 @@ export const iconMap = {
   modules: Workflow,
   organizations: Buildings2,
   audit_review: ShieldCheck,
+  integration_delivery: Webhook,
 };

@@ -72,6 +72,11 @@ export const menus: Module[] = [
     name: "Audit Review",
     path: "/audit-review",
   },
+  {
+    id: "integration_delivery",
+    name: "Integration Delivery",
+    path: "/integration-delivery",
+  },
 ];
 
 export const ProfileMenu: Module[] = [
