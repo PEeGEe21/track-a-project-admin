@@ -67,6 +67,11 @@ export const menus: Module[] = [
     name: "Settings",
     path: "/settings",
   },
+  {
+    id: "audit_review",
+    name: "Audit Review",
+    path: "/audit-review",
+  },
 ];
 
 export const ProfileMenu: Module[] = [

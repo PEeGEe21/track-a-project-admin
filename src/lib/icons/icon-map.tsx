@@ -5,6 +5,7 @@ import {
   Settings,
   UserCog,
   Workflow,
+  ShieldCheck,
 } from "lucide-react";
 import { BoldLogout, BoldUser, BoldWallet2 } from "./iconJSX";
 import { Banknote } from "@solar-icons/react";
@@ -26,4 +27,5 @@ export const iconMap = {
   plans: Tag,
   modules: Workflow,
   organizations: Buildings2,
+  audit_review: ShieldCheck,
 };

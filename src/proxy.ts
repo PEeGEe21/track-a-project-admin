@@ -4,6 +4,7 @@ import { isJwtExpired } from "@/lib/auth-token";
 
 export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("admin_access_token")?.value || null;
+  const refreshToken = request.cookies.get("admin_refresh_token")?.value || null;
   const pathname = request.nextUrl.pathname;
 
   const isAuthPage = pathname.startsWith("/auth");
@@ -14,6 +15,12 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isAuthPage && !isValidAuth) {
+    return NextResponse.next();
+  }
+
+  // Let authenticated server actions rotate an expired access token when a
+  // refresh token is still present. API authorization remains authoritative.
+  if (!isValidAuth && refreshToken && !isAuthPage) {
     return NextResponse.next();
   }
 
@@ -39,6 +46,7 @@ export const config = {
     "/reports/:path*",
     "/subscriptions/:path*",
     "/settings/:path*",
+    "/audit-review/:path*",
     "/auth/:path*",
   ],
 };
